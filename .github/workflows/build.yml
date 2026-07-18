@@ -1,0 +1,29 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch latest sing-box binaries
+        run: bash fetch.sh
+
+      - name: Prepare module
+        id: prep
+        run: |
+          VERSION=$(grep '^version=' module.prop | cut -d= -f2)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          mkdir -p dist
+          cp -r META-INF customize.sh uninstall.sh action.sh module.prop bin sv dist/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sing-box-runsv-${{ steps.prep.outputs.version }}
+          path: dist/

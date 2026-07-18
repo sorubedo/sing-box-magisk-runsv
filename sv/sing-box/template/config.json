@@ -1,0 +1,439 @@
+{
+  "log": {
+    "level": "error"
+  },
+  "_providers": [
+    {
+      "type": "remote",
+      "tag": "MySubscription",
+      "url": "${SUBSCRIPTION_URL}",
+      "user_agent": "mihomo"
+    }
+  ],
+  "dns": {
+    "servers": [
+      {
+        "type": "fakeip",
+        "tag": "FakeDns",
+        "inet4_range": "28.0.0.0/8",
+        "inet6_range": "fc00::/18"
+      },
+      {
+        "type": "https",
+        "tag": "Local-DNS",
+        "server": "223.5.5.5"
+      },
+      {
+        "type": "https",
+        "tag": "Remote-DNS",
+        "detour": "🚀 节点选择",
+        "server": "8.8.8.8"
+      }
+    ],
+    "rules": [
+      {
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "domain_suffix": [
+              ".lan",
+              ".localdomain",
+              ".example",
+              ".invalid",
+              ".localhost",
+              ".test",
+              ".local",
+              ".home.arpa",
+              ".msftconnecttest.com",
+              ".msftncsi.com",
+              ".market.xiaomi.com",
+              ".wotgame.cn",
+              ".wggames.cn",
+              ".wowsgame.cn",
+              ".wargaming.net",
+              ".steamcontent.com"
+            ],
+            "invert": true
+          },
+          {
+            "query_type": [
+              "A",
+              "AAAA"
+            ]
+          }
+        ],
+        "server": "FakeDns"
+      },
+      {
+        "rule_set": "CN-Domain",
+        "server": "Local-DNS"
+      }
+    ],
+    "final": "Remote-DNS",
+    "strategy": "prefer_ipv4"
+  },
+  "http_clients": [
+    {
+      "tag": "direct",
+      "engine": "go",
+      "version": 2,
+      "stream_receive_window": 0,
+      "connection_receive_window": 0
+    },
+    {
+      "tag": "proxy",
+      "engine": "go",
+      "version": 2,
+      "detour": "🚀 节点选择",
+      "stream_receive_window": 0,
+      "connection_receive_window": 0
+    }
+  ],
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "127.0.0.1",
+      "listen_port": 1080,
+      "tcp_fast_open": true,
+      "udp_fragment": true
+    },
+    {
+      "type": "tun",
+      "tag": "tun-in",
+      "interface_name": "SB0",
+      "mtu": 9000,
+      "address": [
+        "172.18.0.1/30",
+        "fdfe:dcba:9876::1/126"
+      ],
+      "auto_route": true,
+      "auto_redirect": true,
+      "strict_route": true,
+      "stack": "mixed"
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 节点选择",
+      "_use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "🐼 中国大陆",
+      "outbounds": [
+        "直连",
+        "🚀 节点选择"
+      ],
+      "_use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "❤️ AI-!CN",
+      "outbounds": [
+        "🚀 节点选择",
+        "🐼 中国大陆",
+        "直连"
+      ],
+      "_use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "🐟 漏网之鱼",
+      "outbounds": [
+        "🚀 节点选择",
+        "🐼 中国大陆",
+        "直连"
+      ],
+      "_use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "📺 Bilibili",
+      "outbounds": [
+        "🐼 中国大陆",
+        "🚀 节点选择",
+        "直连"
+      ],
+      "_use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "🛰 Telegram",
+      "outbounds": [
+        "🚀 节点选择",
+        "🐼 中国大陆",
+        "直连"
+      ],
+      "_use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "💻 Github",
+      "outbounds": [
+        "🚀 节点选择",
+        "🐼 中国大陆",
+        "直连"
+      ],
+      "_use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "🪟 Microsoft",
+      "outbounds": [
+        "🐼 中国大陆",
+        "🚀 节点选择",
+        "直连"
+      ],
+      "_use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "🎥 Youtube",
+      "outbounds": [
+        "🚀 节点选择",
+        "🐼 中国大陆",
+        "直连"
+      ],
+      "_use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "🌈 Google",
+      "outbounds": [
+        "🚀 节点选择",
+        "🐼 中国大陆",
+        "直连"
+      ],
+      "_use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "🍎 Apple",
+      "outbounds": [
+        "🐼 中国大陆",
+        "🚀 节点选择",
+        "直连"
+      ],
+      "_use_all_providers": true,
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "direct",
+      "tag": "直连"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "action": "sniff"
+      },
+      {
+        "protocol": "dns",
+        "action": "hijack-dns"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "直连"
+      },
+      {
+        "rule_set": "AI-!CN-Domain",
+        "outbound": "❤️ AI-!CN"
+      },
+      {
+        "rule_set": "Bilibili-Domain",
+        "outbound": "📺 Bilibili"
+      },
+      {
+        "rule_set": "Telegram-Domain",
+        "outbound": "🛰 Telegram"
+      },
+      {
+        "rule_set": "Github-Domain",
+        "outbound": "💻 Github"
+      },
+      {
+        "rule_set": "Microsoft-Domain",
+        "outbound": "🪟 Microsoft"
+      },
+      {
+        "rule_set": "Youtube-Domain",
+        "outbound": "🎥 Youtube"
+      },
+      {
+        "rule_set": "Google-Domain",
+        "outbound": "🌈 Google"
+      },
+      {
+        "rule_set": "Apple-Domain",
+        "outbound": "🍎 Apple"
+      },
+      {
+        "rule_set": "CN-Domain",
+        "outbound": "🐼 中国大陆"
+      },
+      {
+        "rule_set": "!CN-Location-Domain",
+        "outbound": "🚀 节点选择"
+      },
+      {
+        "action": "resolve"
+      },
+      {
+        "rule_set": "Bilibili-IP",
+        "outbound": "📺 Bilibili"
+      },
+      {
+        "rule_set": "Telegram-IP",
+        "outbound": "🛰 Telegram"
+      },
+      {
+        "rule_set": "Google-IP",
+        "outbound": "🌈 Google"
+      },
+      {
+        "rule_set": "Apple-IP",
+        "outbound": "🍎 Apple"
+      },
+      {
+        "rule_set": "CN-IP",
+        "outbound": "🐼 中国大陆"
+      }
+    ],
+    "rule_set": [
+      {
+        "type": "remote",
+        "tag": "AI-!CN-Domain",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-ai-!cn.srs",
+        "update_interval": "2h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "Github-Domain",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/github.srs",
+        "update_interval": "2h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "Microsoft-Domain",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/microsoft.srs",
+        "update_interval": "2h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "Youtube-Domain",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/youtube.srs",
+        "update_interval": "2h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "Google-Domain",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/google.srs",
+        "update_interval": "2h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "Google-IP",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/google.srs",
+        "update_interval": "2h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "Bilibili-Domain",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/bilibili.srs",
+        "update_interval": "2h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "Bilibili-IP",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo-lite/geoip/bilibili.srs",
+        "update_interval": "2h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "Telegram-Domain",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/telegram.srs",
+        "update_interval": "2h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "Telegram-IP",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/telegram.srs",
+        "update_interval": "2h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "CN-Domain",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/cn.srs",
+        "update_interval": "2h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "CN-IP",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/cn.srs",
+        "update_interval": "2h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "!CN-Location-Domain",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/geolocation-!cn.srs",
+        "update_interval": "2h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "Apple-Domain",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/apple.srs",
+        "update_interval": "2h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "Apple-IP",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo-lite/geoip/apple.srs",
+        "update_interval": "2h0m0s"
+      }
+    ],
+    "final": "🐟 漏网之鱼",
+    "find_process": true,
+    "auto_detect_interface": true,
+    "default_domain_resolver": {
+      "server": "Local-DNS",
+      "strategy": "prefer_ipv4"
+    },
+    "default_http_client": "proxy"
+  },
+  "services": [
+    {
+      "type": "api",
+      "listen": "${DASHBOARD_LISTEN}",
+      "listen_port": ${DASHBOARD_LISTEN_PORT},
+      "secret": "${DASHBOARD_SECRET}",
+      "access_control_allow_private_network": true,
+      "dashboard": {
+        "enabled": true,
+        "download_url": "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip",
+        "http_client": "proxy"
+      }
+    }
+  ],
+  "experimental": {
+    "cache_file": {
+      "enabled": true,
+      "path": "cache.db",
+      "store_fakeip": true,
+      "rdrc_timeout": "168h0m0s",
+      "store_dns": true
+    }
+  }
+}
