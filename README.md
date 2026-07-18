@@ -75,7 +75,7 @@ If you want subsing to re-fetch and overwrite the config on every boot, remove `
 SUBSING_ARGS="./template ./workdir"
 ```
 
-**Caveat:** `runsvdir` starts very early in the boot process, possibly before the network is available. When subsing fails due to no network, the service exits with a 30-second delay, and `runsv` automatically retries until it succeeds.
+**Caveat:** `runsvdir` starts very early in the boot process, possibly before the network is available. When subsing fails due to no network, the service exits with a 10-second delay, and `runsv` automatically retries until it succeeds.
 
 Example:
 
