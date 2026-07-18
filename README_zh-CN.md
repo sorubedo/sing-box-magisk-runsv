@@ -75,7 +75,7 @@ Release 附件并**未**与上游 sing-box 版本保持同步。
 SUBSING_ARGS="./template ./workdir"
 ```
 
-**注意：** `runsvdir` 在开机流程中启动较早，可能早于网络就绪。此时 subsing 拉取失败会退出服务并等待 30 秒，`runsv` 会自动不断重试直到成功。
+**注意：** `runsvdir` 在开机流程中启动较早，可能早于网络就绪。此时 subsing 拉取失败会退出服务并等待 10 秒，`runsv` 会自动不断重试直到成功。
 
 示例：
 
