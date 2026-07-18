@@ -5,9 +5,9 @@ exec 2>&1
 
 if [ "${WAIT_DECRYPT:-0}" != "0" ]; then
     echo "🔄 检测存储解密状态..."
-    if [ ! -d /storage/emulated/0/Android ] || [ ! -r /storage/emulated/0/Android ]; then
-        echo "🔐 存储未解密，等待 30s 后退出服务..."
-        sleep 30
+    if [ "$(getprop sys.user.0.ce_available)" != "true" ]; then
+        echo "🔐 存储未解密，等待 10s 后退出服务..."
+        sleep 10
         exit 1
     fi
     echo "✅ OK"
@@ -17,8 +17,8 @@ if [ "${UPDATE_CONFIG:-1}" = "1" ]; then
     echo "🔄 更新配置..."
     subsing ${SUBSING_ARGS:---skip-existing ./template ./workdir}
     if [ $? -ne 0 ]; then
-        echo "❌ 配置更新失败，等待 30s 后退出服务..."
-        sleep 30
+        echo "❌ 配置更新失败，等待 10s 后退出服务..."
+        sleep 10
         exit 1
     fi
     echo "✅ OK"
