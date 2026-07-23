@@ -23,7 +23,7 @@ Release 附件并**未**与上游 sing-box 版本保持同步。
 
 1. 进入 [构建工作流](https://github.com/sorubedo/sing-box-magisk-runsv/actions/workflows/build.yml)
 2. 点击 **Run workflow** → **Run workflow**
-3. 等待运行完成后，从 **Artifacts** 下载 zip 文件
+3. 等待运行完成后下载 Artifact，再选择后缀与设备匹配的 ZIP：`arm64-v8a`、`armeabi-v7a`、`x86_64` 或 `x86`
 
 ## 安装
 
@@ -148,7 +148,7 @@ SUBSING_ARGS="--skip-existing ./template /storage/emulated/0/sing-box"
 
 ```sh
 ./fetch.sh       # 下载各架构的最新 sing-box 和 subsing 到 bin/
-./package.sh     # 生成 out/sing-box-runsv-<version>.zip
+./package.sh     # 为每个 ABI 生成 out/sing-box-runsv-<version>-<abi>.zip
 ```
 
-生成的 zip 可直接在 Magisk/KernelSU 中刷入。
+每个 ZIP 只包含一个 ABI，可直接在 Magisk/KernelSU 中刷入。也可以向 `package.sh` 传入一个或多个 ABI 名称，只构建指定目标。

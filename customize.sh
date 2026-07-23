@@ -13,6 +13,10 @@ esac
 
 ui_print "- Installing sing-box for $ARCH ($ABI)"
 
+if [ ! -f "$MODPATH/bin/$ABI/sing-box" ] || [ ! -f "$MODPATH/bin/$ABI/subsing" ]; then
+    abort "! Wrong package: download the $ABI build for this device"
+fi
+
 mkdir -p "$MODPATH/system/bin"
 cp "$MODPATH/bin/$ABI/sing-box" "$MODPATH/system/bin/"
 cp "$MODPATH/bin/$ABI/subsing" "$MODPATH/system/bin/"
@@ -24,7 +28,7 @@ cp -r "$MODPATH/sv/sing-box/"* "$SINGBOX_DIR/"
 mkdir -p "$SINGBOX_DIR/workdir"
 set_perm_recursive "$SINGBOX_DIR" 0 0 0755 0755
 
-rm -rf "$MODPATH/bin" "$MODPATH/sv"
+rm -rf "${MODPATH:?}/bin" "${MODPATH:?}/sv"
 
 ui_print "- sing-box installed to $SINGBOX_DIR"
 ui_print "- Reboot required for Magisk to mount /system/bin/sing-box"

@@ -2,6 +2,7 @@
 set -euo pipefail
 
 BIN_DIR="$(cd "$(dirname "$0")" && pwd)/bin"
+OUT_DIR="$(cd "$(dirname "$0")" && pwd)/out"
 TMPDIR="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR"' EXIT
 
@@ -77,3 +78,13 @@ done
 
 echo ""
 echo "=> Done: sing-box $SB_TAG + subsing $SS_TAG"
+
+mkdir -p "$OUT_DIR"
+{
+    printf 'sing_box_version=%s\n' "$SB_TAG"
+    printf 'subsing_version=%s\n' "$SS_TAG"
+} > "$OUT_DIR/upstream-versions.env"
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+    printf 'sing_box_version=%s\n' "$SB_TAG" >> "$GITHUB_OUTPUT"
+    printf 'subsing_version=%s\n' "$SS_TAG" >> "$GITHUB_OUTPUT"
+fi
