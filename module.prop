@@ -1,6 +1,6 @@
 id=sing-box-runsv
 name=sing-box (runsv)
-version=1.0.2
-versionCode=102
-author=runsvdir-magisk
+version=1.1.0
+versionCode=110
+author=sorubedo(github)
 description=sing-box as a runsv service. Edit conf to change args, link via runsvdir WebUI.
