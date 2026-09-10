@@ -6,7 +6,7 @@ NAME="sing-box-runsv"
 VERSION="$(sed -n 's/^version=//p' "$PROJECT_DIR/module.prop")"
 OUT_DIR="$PROJECT_DIR/out"
 SUPPORTED_ABIS=(arm64-v8a armeabi-v7a x86_64 x86)
-BINARIES=(sing-box subsing)
+BINARY=sing-box
 COMMON_FILES=(META-INF customize.sh uninstall.sh action.sh module.prop sv)
 
 usage() {
@@ -46,12 +46,10 @@ mkdir -p "$OUT_DIR"
 PACKAGES=()
 
 for ABI in "${ABIS[@]}"; do
-    for binary in "${BINARIES[@]}"; do
-        if [ ! -f "$PROJECT_DIR/bin/$ABI/$binary" ]; then
-            echo "ERROR: missing bin/$ABI/$binary; run fetch.sh first" >&2
-            exit 1
-        fi
-    done
+    if [ ! -f "$PROJECT_DIR/bin/$ABI/$BINARY" ]; then
+        echo "ERROR: missing bin/$ABI/$BINARY; run fetch.sh first" >&2
+        exit 1
+    fi
 
     STAGE_DIR="$(mktemp -d)"
     trap 'rm -rf "$STAGE_DIR"' EXIT
@@ -61,9 +59,7 @@ for ABI in "${ABIS[@]}"; do
     done
     chmod 755 "$STAGE_DIR/META-INF/com/google/android/update-binary"
     mkdir -p "$STAGE_DIR/bin/$ABI"
-    for binary in "${BINARIES[@]}"; do
-        cp -a "$PROJECT_DIR/bin/$ABI/$binary" "$STAGE_DIR/bin/$ABI/"
-    done
+    cp -a "$PROJECT_DIR/bin/$ABI/$BINARY" "$STAGE_DIR/bin/$ABI/"
 
     {
         echo "moduleVersion=$VERSION"

@@ -13,15 +13,4 @@ if [ "${WAIT_DECRYPT:-0}" != "0" ]; then
     echo "✅ OK"
 fi
 
-if [ "${UPDATE_CONFIG:-1}" = "1" ]; then
-    echo "🔄 更新配置..."
-    subsing ${SUBSING_ARGS:---skip-existing ./template ./workdir}
-    if [ $? -ne 0 ]; then
-        echo "❌ 配置更新失败，等待 10s 后退出服务..."
-        sleep 10
-        exit 1
-    fi
-    echo "✅ OK"
-fi
-
 exec chpst -u "${CHPST_USER:-root:net_admin}" sing-box ${SINGBOX_ARGS:--D ./workdir} run

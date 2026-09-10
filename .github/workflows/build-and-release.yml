@@ -29,7 +29,6 @@ jobs:
         env:
           MODULE_VERSION: ${{ steps.prep.outputs.version }}
           SING_BOX_VERSION: ${{ steps.upstream.outputs.sing_box_version }}
-          SUBSING_VERSION: ${{ steps.upstream.outputs.subsing_version }}
         run: |
           {
             echo "## Build information"
@@ -38,7 +37,6 @@ jobs:
             echo "| --- | --- |"
             echo "| sing-box-runsv module | $MODULE_VERSION |"
             echo "| sing-box upstream binary | [$SING_BOX_VERSION](https://github.com/SagerNet/sing-box/releases/tag/$SING_BOX_VERSION) |"
-            echo "| subsing upstream binary | [$SUBSING_VERSION](https://github.com/sorubedo/subsing/releases/tag/$SUBSING_VERSION) |"
             echo
             echo "## ABI packages"
             echo
