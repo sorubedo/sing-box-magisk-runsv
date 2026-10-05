@@ -31,7 +31,13 @@ out/upstream-versions.env with the module version mapping.
 EOF
 }
 
-api() { curl -sLS "https://api.github.com/repos/$SB_REPO/$1"; }
+api() {
+    # --retry-all-errors + --http1.1: the releases list is a large document and
+    # HTTP/2 streams occasionally get cancelled mid-transfer on CI runners.
+    curl -fsSL --http1.1 --retry 3 --retry-delay 2 --retry-all-errors \
+        -H "Accept: application/vnd.github+json" \
+        "https://api.github.com/repos/$SB_REPO/$1"
+}
 
 latest_prerelease() {
     api "releases?per_page=30" | jq -r '[.[] | select(.prerelease == true)] | .[0].tag_name // empty'

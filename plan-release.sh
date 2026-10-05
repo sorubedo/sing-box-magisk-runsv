@@ -21,11 +21,15 @@ CHANNEL_INPUT="${CHANNEL_INPUT:-auto}"
 FORCE="${FORCE:-false}"
 
 api() {
+    url="$1"
+    # --retry-all-errors + --http1.1: the releases list is a large document and
+    # HTTP/2 streams occasionally get cancelled mid-transfer on CI runners.
+    set -- -fsSL --http1.1 --retry 3 --retry-delay 2 --retry-all-errors \
+        -H "Accept: application/vnd.github+json"
     if [ -n "${GH_TOKEN:-}" ]; then
-        curl -fsSL -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github+json" "$1"
+        curl "$@" -H "Authorization: Bearer $GH_TOKEN" "$url"
     else
-        curl -fsSL -H "Accept: application/vnd.github+json" "$1"
+        curl "$@" "$url"
     fi
 }
 
