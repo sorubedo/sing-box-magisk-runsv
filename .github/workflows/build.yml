@@ -23,7 +23,9 @@ jobs:
 
       - name: Fetch sing-box binaries
         id: upstream
-        run: bash fetch.sh "${{ github.event.inputs.channel || 'auto' }}"
+        env:
+          CHANNEL: ${{ github.event.inputs.channel }}
+        run: bash fetch.sh "${CHANNEL:-auto}"
 
       - name: Read upstream version
         id: prep
