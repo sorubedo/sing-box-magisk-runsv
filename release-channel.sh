@@ -44,7 +44,24 @@ VERSION="$SING_BOX_VERSION"
 NOTES="$OUT_DIR/release-notes.md"
 
 echo "==> [$CHANNEL] package $VERSION"
+# Drop anything a previous channel in the same job left in out/, so a stale
+# package can never end up in this channel's release.
+rm -f "$OUT_DIR"/*.zip "$OUT_DIR"/SHA256SUMS
 bash package.sh
+
+# Explicit asset list for this channel (never a wildcard).
+ASSETS=()
+for abi in arm64-v8a armeabi-v7a x86_64 x86; do
+    ASSETS+=("$OUT_DIR/sing-box-runsv-$VERSION-$abi.zip")
+done
+ASSETS+=("$OUT_DIR/SHA256SUMS" "$OUT_DIR/upstream-versions.env")
+
+for asset in "${ASSETS[@]}"; do
+    if [ ! -f "$asset" ]; then
+        echo "ERROR: expected release asset is missing: $asset" >&2
+        exit 1
+    fi
+done
 
 # --- release notes ----------------------------------------------------
 {
@@ -90,9 +107,7 @@ if [ "$DRY_RUN" = "true" ]; then
 else
     if gh release view "$TAG" >/dev/null 2>&1; then
         echo "==> [$CHANNEL] update existing release $TAG"
-        gh release upload "$TAG" \
-            "$OUT_DIR"/*.zip "$OUT_DIR/SHA256SUMS" "$OUT_DIR/upstream-versions.env" \
-            --clobber
+        gh release upload "$TAG" "${ASSETS[@]}" --clobber
         # shellcheck disable=SC2086
         gh release edit "$TAG" --title "$TAG (runsv module)" --notes-file "$NOTES" $PRERELEASE_FLAG
     else
@@ -102,7 +117,7 @@ else
             --title "$TAG (runsv module)" \
             --notes-file "$NOTES" \
             $PRERELEASE_FLAG \
-            "$OUT_DIR"/*.zip "$OUT_DIR/SHA256SUMS" "$OUT_DIR/upstream-versions.env"
+            "${ASSETS[@]}"
     fi
 fi
 
