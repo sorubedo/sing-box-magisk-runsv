@@ -25,11 +25,8 @@ Requires [runsvdir-magisk](https://github.com/sorubedo/runsvdir-magisk) to be in
 ## SHA-256
 
 ```text
-b5e8a64f2afeb064d1089983139e2395b1b072e98856e84f06a01d99eaa8bcf8  sing-box-runsv-1.15.0-alpha.10-arm64-v8a.zip
-794b616f69b68d3cff6d343bea9e6cecb104c2477ec2018d2fcabc10379b38f9  sing-box-runsv-1.15.0-alpha.10-armeabi-v7a.zip
-42c76932f251fc52bdfe3ab04ea76f2f4184d408d58200bc4549b64ac61e021a  sing-box-runsv-1.15.0-alpha.10-x86_64.zip
-416ed6dc7c834bd4e692319c2c302fc50f1489a7f6311c91a4f2ae928d305cdc  sing-box-runsv-1.15.0-alpha.10-x86.zip
+8bd0cd2eed306b9e9bc25313de5edfc6f1c613ff3cfabac4a759ed1589edd32b  sing-box-runsv-1.15.0-alpha.10-arm64-v8a.zip
+118a768382c67819b7feedaba4dba17e3a03f62b341c02bc15ba7a9fa67dda31  sing-box-runsv-1.15.0-alpha.10-armeabi-v7a.zip
+9e4851e8cbbfe1aed40544cef397e50ab24e0dfebb6eaaa8eb6658dc9282ee52  sing-box-runsv-1.15.0-alpha.10-x86_64.zip
+861d0c5b7008e43d01e31de4959b0d300470237710e7b0acefe9b9e360ab7d42  sing-box-runsv-1.15.0-alpha.10-x86.zip
 ```
-
-
-**Full Changelog**: https://github.com/sorubedo/sing-box-magisk-runsv/compare/v1.1.0...v1.15.0-alpha.10
