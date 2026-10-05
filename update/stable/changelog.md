@@ -25,8 +25,8 @@ Requires [runsvdir-magisk](https://github.com/sorubedo/runsvdir-magisk) to be in
 ## SHA-256
 
 ```text
-20578d7ba157df1e25721f9fcc5529ac0f17555a7c5a272a953e2823e47d4716  sing-box-runsv-1.14.2-arm64-v8a.zip
-0576e05783578be327ebd626720a13a0afeeca06f7c6f45190851defe7b59e96  sing-box-runsv-1.14.2-armeabi-v7a.zip
-955847d6b9c427c9361dda3eeed5810d7eb2aa2f7bb16c0d00b70f260a4ef264  sing-box-runsv-1.14.2-x86_64.zip
-a041eecb3d4a35c811ded2db1a827df96dab00eeacbb4e22765173308746d8c9  sing-box-runsv-1.14.2-x86.zip
+1fab8e75f38ff616e4d780ce7fae08587e4c8582d14e20c31c4331edb5dd64f1  sing-box-runsv-1.14.2-arm64-v8a.zip
+7c57d6ea2e2149db96914c251938a76397e7765eb6092a5d7127716a849497b0  sing-box-runsv-1.14.2-armeabi-v7a.zip
+1a34488af64cf1ccebcbf4a7cf4a4d6f38eca2d9ea3da09161cdd70849d4ffca  sing-box-runsv-1.14.2-x86_64.zip
+b8711ee56b4167bf37a7d37125b98335e78adf7c1f20440667d59ef5790d2e0f  sing-box-runsv-1.14.2-x86.zip
 ```
