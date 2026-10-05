@@ -1,95 +1,79 @@
 name: Build and Release
 
-# Two channels, mirroring sing-box upstream:
-#   stable     -> publishes a normal GitHub release
-#   prerelease -> publishes a GitHub pre-release
+# Publishes a module release whenever upstream sing-box has a new tag, and
+# regenerates the update metadata that the module update checkers read.
+#
+#   schedule  -> daily, publishes whichever channel has a new upstream tag
+#   dispatch  -> manual, optionally limited to one channel and/or forced
 on:
+  schedule:
+    - cron: "0 0 * * *"
   workflow_dispatch:
     inputs:
       channel:
-        description: "Release channel"
+        description: "Channel to publish"
         required: true
-        default: stable
+        default: auto
         type: choice
         options:
+          - auto
           - stable
           - prerelease
+      force:
+        description: "Republish even if the release already exists"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
 
+# Serialize runs so the update-metadata commit never races itself.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch sing-box binaries
-        id: upstream
-        run: bash fetch.sh "${{ inputs.channel }}"
-
-      - name: Read upstream version
-        id: prep
-        run: |
-          set -a; . out/upstream-versions.env; set +a
-          echo "version=$SING_BOX_VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=$SING_BOX_TAG" >> "$GITHUB_OUTPUT"
-          echo "channel=$MODULE_CHANNEL" >> "$GITHUB_OUTPUT"
-
-      - name: Package per ABI
-        run: bash package.sh
-
-      - name: Create release notes
+      - name: Plan channels
+        id: plan
         env:
-          SING_BOX_TAG: ${{ steps.prep.outputs.tag }}
-          MODULE_VERSION: ${{ steps.prep.outputs.version }}
-          MODULE_CHANNEL: ${{ steps.prep.outputs.channel }}
+          CHANNEL_INPUT: ${{ github.event.inputs.channel || 'auto' }}
+          FORCE: ${{ github.event.inputs.force || 'false' }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash plan-release.sh
+
+      - name: Build and publish
+        if: steps.plan.outputs.channels != ''
+        env:
+          CHANNELS: ${{ steps.plan.outputs.channels }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          {
-            echo "## Build information"
-            echo
-            echo "| Component | Value |"
-            echo "| --- | --- |"
-            echo "| Module | sing-box-runsv |"
-            echo "| Channel | $MODULE_CHANNEL |"
-            echo "| Module version | $MODULE_VERSION |"
-            echo "| sing-box upstream | [$SING_BOX_TAG](https://github.com/SagerNet/sing-box/releases/tag/$SING_BOX_TAG) |"
-            echo
-            echo "The module version and versionCode are derived from the upstream sing-box release."
-            echo
-            echo "## ABI packages"
-            echo
-            echo "| Asset suffix | Android / Magisk architecture |"
-            echo "| --- | --- |"
-            echo "| arm64-v8a | arm64 |"
-            echo "| armeabi-v7a | arm |"
-            echo "| x86_64 | x64 |"
-            echo "| x86 | x86 |"
-            echo
-            echo "Each ZIP contains the binary for one ABI only. Download the asset matching the target device."
-            echo
-            echo "Requires [runsvdir-magisk](https://github.com/sorubedo/runsvdir-magisk) to be installed and rebooted first."
-            echo
-            echo "## SHA-256"
-            echo
-            echo '```text'
-            cat out/SHA256SUMS
-            echo '```'
-          } > out/release-notes.md
+          for channel in $CHANNELS; do
+            bash release-channel.sh "$channel"
+          done
 
-          cat out/release-notes.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Validate update metadata
+        if: steps.plan.outputs.channels != ''
+        run: |
+          for f in $(find update -name '*.json' | sort); do
+            jq -e 'has("version") and has("versionCode") and has("zipUrl") and has("changelog")' "$f" >/dev/null
+            echo "ok: $f"
+          done
 
-      - name: Create Release and Upload Assets
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.prep.outputs.tag }}
-          name: ${{ steps.prep.outputs.tag }} (runsv module)
-          body_path: out/release-notes.md
-          generate_release_notes: true
-          files: |
-            out/*.zip
-            out/SHA256SUMS
-            out/upstream-versions.env
-          fail_on_unmatched_files: true
-          draft: false
-          prerelease: ${{ steps.prep.outputs.channel == 'prerelease' }}
+      - name: Commit update metadata
+        if: steps.plan.outputs.channels != ''
+        run: |
+          if [ -z "$(git status --porcelain update)" ]; then
+            echo "=> update metadata unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add update
+          git commit -m "chore(update): ${{ steps.plan.outputs.channels }}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

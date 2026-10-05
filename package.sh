@@ -8,6 +8,12 @@ SUPPORTED_ABIS=(arm64-v8a armeabi-v7a x86_64 x86)
 BINARY=sing-box
 COMMON_FILES=(META-INF customize.sh uninstall.sh action.sh module.prop service)
 
+# Where the committed update/<channel>/<abi>.json metadata is served from.
+# Kept in sync with publish-update.sh so the URL baked into module.prop
+# resolves to the matching file.
+REPO_SLUG="${REPO_SLUG:-sorubedo/sing-box-magisk-runsv}"
+RAW_BASE="${RAW_BASE:-https://raw.githubusercontent.com/$REPO_SLUG/main}"
+
 usage() {
     echo "Usage: $0 [arm64-v8a|armeabi-v7a|x86_64|x86 ...]"
     echo "With no ABI arguments, packages all supported ABIs separately."
@@ -36,16 +42,25 @@ else
     CHANNEL="local"
 fi
 
-# Replace version/versionCode in a staged module.prop, keeping line order.
+# Replace version/versionCode/updateJson in a staged module.prop, keeping line
+# order. updateJson is appended when a URL is given and the file has none.
 stamp_module_prop() {
-    local file="$1" tmp="$1.tmp"
+    local file="$1" update_url="${2:-}" tmp="$1.tmp"
     while IFS= read -r line; do
         case "$line" in
             version=*) echo "version=$VERSION" ;;
             versionCode=*) echo "versionCode=$VERSION_CODE" ;;
+            updateJson=*)
+                if [ -n "$update_url" ]; then
+                    echo "updateJson=$update_url"
+                fi
+                ;;
             *) echo "$line" ;;
         esac
     done < "$file" > "$tmp"
+    if [ -n "$update_url" ] && ! grep -q '^updateJson=' "$tmp"; then
+        echo "updateJson=$update_url" >> "$tmp"
+    fi
     mv "$tmp" "$file"
 }
 
@@ -94,7 +109,13 @@ for ABI in "${ABIS[@]}"; do
     mkdir -p "$STAGE_DIR/bin/$ABI"
     cp -a "$PROJECT_DIR/bin/$ABI/$BINARY" "$STAGE_DIR/bin/$ABI/"
 
-    stamp_module_prop "$STAGE_DIR/module.prop"
+    # Bake the per-channel, per-ABI update source into module.prop. Dev builds
+    # (no upstream-versions.env) leave updateJson out on purpose.
+    update_url=""
+    case "$CHANNEL" in
+        stable | prerelease) update_url="$RAW_BASE/update/$CHANNEL/$ABI.json" ;;
+    esac
+    stamp_module_prop "$STAGE_DIR/module.prop" "$update_url"
 
     {
         echo "moduleVersion=$VERSION"

@@ -1,0 +1,83 @@
+#!/bin/bash
+#
+# Generate the per-channel / per-ABI update metadata that the Magisk, KernelSU
+# and APatch module update checkers fetch.
+#
+# The files live in update/<channel>/<abi>.json and are committed to the repo,
+# then served over raw.githubusercontent.com. Run fetch.sh first so that
+# out/upstream-versions.env exists.
+#
+# Usage:
+#   ./publish-update.sh [upstream-versions.env]
+#
+# Environment overrides:
+#   REPO_SLUG      owner/repo                  (default: sorubedo/sing-box-magisk-runsv)
+#   RAW_BASE       raw base URL of this repo   (default: https://raw.githubusercontent.com/<owner>/<repo>/main)
+#   CHANGELOG_SRC  markdown file to publish    (default: out/release-notes.md)
+#
+
+set -euo pipefail
+
+PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
+OUT_DIR="$PROJECT_DIR/out"
+UPDATE_DIR="$PROJECT_DIR/update"
+ABIS=(arm64-v8a armeabi-v7a x86_64 x86)
+
+REPO_SLUG="${REPO_SLUG:-sorubedo/sing-box-magisk-runsv}"
+RAW_BASE="${RAW_BASE:-https://raw.githubusercontent.com/$REPO_SLUG/main}"
+CHANGELOG_SRC="${CHANGELOG_SRC:-$OUT_DIR/release-notes.md}"
+ENV_FILE="${1:-$OUT_DIR/upstream-versions.env}"
+
+if [ ! -f "$ENV_FILE" ]; then
+    echo "ERROR: $ENV_FILE not found; run fetch.sh first" >&2
+    exit 1
+fi
+
+# shellcheck disable=SC1090
+. "$ENV_FILE"
+
+VERSION="${SING_BOX_VERSION:?missing SING_BOX_VERSION in $ENV_FILE}"
+VERSION_CODE="${SING_BOX_VERSION_CODE:?missing SING_BOX_VERSION_CODE in $ENV_FILE}"
+TAG="${SING_BOX_TAG:?missing SING_BOX_TAG in $ENV_FILE}"
+CHANNEL="${MODULE_CHANNEL:?missing MODULE_CHANNEL in $ENV_FILE}"
+
+case "$CHANNEL" in
+    stable | prerelease) ;;
+    *)
+        echo "ERROR: unsupported channel '$CHANNEL' (expected stable or prerelease)" >&2
+        exit 1
+        ;;
+esac
+
+CHAN_DIR="$UPDATE_DIR/$CHANNEL"
+mkdir -p "$CHAN_DIR"
+
+# --- changelog --------------------------------------------------------
+if [ -f "$CHANGELOG_SRC" ]; then
+    cp "$CHANGELOG_SRC" "$CHAN_DIR/changelog.md"
+else
+    {
+        echo "# sing-box-runsv $VERSION"
+        echo
+        echo "Release: https://github.com/$REPO_SLUG/releases/tag/$TAG"
+    } > "$CHAN_DIR/changelog.md"
+fi
+CHANGELOG_URL="$RAW_BASE/update/$CHANNEL/changelog.md"
+
+echo "=> channel: $CHANNEL (module version $VERSION, versionCode $VERSION_CODE)"
+
+# --- one update.json per ABI ------------------------------------------
+for ABI in "${ABIS[@]}"; do
+    ZIP_NAME="sing-box-runsv-${VERSION}-${ABI}.zip"
+    cat > "$CHAN_DIR/$ABI.json" <<EOF
+{
+  "version": "$VERSION",
+  "versionCode": $VERSION_CODE,
+  "zipUrl": "https://github.com/$REPO_SLUG/releases/download/$TAG/$ZIP_NAME",
+  "changelog": "$CHANGELOG_URL"
+}
+EOF
+    echo "   update/$CHANNEL/$ABI.json"
+done
+
+echo "   update/$CHANNEL/changelog.md"

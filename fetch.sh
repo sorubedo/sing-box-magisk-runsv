@@ -95,8 +95,24 @@ for ABI in "${!SB_PLAT[@]}"; do
 done
 
 # --- map the upstream tag to module version / versionCode -------------
+#
+# versionCode layout (stays well below Magisk's 32-bit Int limit):
+#
+#   major * 10000000 + minor * 100000 + patch * 1000 + stage * 100 + ordinal
+#
+# stage orders builds with the same major.minor.patch:
+#
+#   alpha(1) < beta(2) < rc(3) < stable(9)
+#
+# ordinal is the trailing number of a pre-release (alpha.10 -> 10). Encoding it
+# keeps every pre-release distinct, so pre-release -> pre-release updates are
+# detected; the stage digit lets the stable build supersede the pre-release it
+# was cut from. Every value produced here is larger than anything the old
+# scheme produced, so existing installs still see the next build as an update.
 VERSION="${SB_TAG#v}"
 CORE="${VERSION%%-*}"
+PRE="${VERSION#"$CORE"}"     # "", "-alpha.10", ...
+PRE="${PRE#-}"
 
 MAJOR="${CORE%%.*}"
 REST="${CORE#*.}"
@@ -114,18 +130,25 @@ MAJOR="${MAJOR//[!0-9]/}"; MAJOR="${MAJOR:-0}"
 MINOR="${MINOR//[!0-9]/}"; MINOR="${MINOR:-0}"
 PATCH="${PATCH//[!0-9]/}"; PATCH="${PATCH:-0}"
 
-case "$VERSION" in
-    *-*)
-        MODULE_CHANNEL=prerelease
-        SUFFIX=0
-        ;;
-    *)
-        MODULE_CHANNEL=stable
-        SUFFIX=1
-        ;;
-esac
+if [ -z "$PRE" ]; then
+    MODULE_CHANNEL=stable
+    STAGE=9
+    ORDINAL=0
+else
+    MODULE_CHANNEL=prerelease
+    case "$PRE" in
+        alpha*) STAGE=1 ;;
+        beta*)  STAGE=2 ;;
+        rc*)    STAGE=3 ;;
+        *)      STAGE=1 ;;
+    esac
+    ORDINAL="${PRE##*.}"
+    case "$ORDINAL" in
+        '' | *[!0-9]*) ORDINAL=0 ;;
+    esac
+fi
 
-VERSION_CODE=$((10#$MAJOR * 1000000 + 10#$MINOR * 1000 + 10#$PATCH * 10 + SUFFIX))
+VERSION_CODE=$((10#$MAJOR * 10000000 + 10#$MINOR * 100000 + 10#$PATCH * 1000 + STAGE * 100 + 10#$ORDINAL))
 
 mkdir -p "$OUT_DIR"
 cat > "$OUT_DIR/upstream-versions.env" <<EOF

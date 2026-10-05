@@ -1,5 +1,8 @@
 name: Build
 
+# Manual, release-less build. Produces the per-ABI ZIPs as workflow artifacts
+# without touching GitHub releases or the update metadata. The scheduled
+# build + release lives in release.yml.
 on:
   workflow_dispatch:
     inputs:
@@ -12,8 +15,6 @@ on:
           - auto
           - stable
           - prerelease
-  schedule:
-    - cron: "0 0 * * *"
 
 jobs:
   build:

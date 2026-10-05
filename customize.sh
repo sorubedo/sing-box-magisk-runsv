@@ -108,6 +108,21 @@ fi
 
 banner
 ui_print "- 设备架构: $ARCH ($ABI)"
+
+# build-info.prop is written by package.sh and carries the channel/ABI this
+# package was built for.
+UPDATE_CHANNEL=""
+if [ -f "$MODPATH/build-info.prop" ]; then
+    UPDATE_CHANNEL="$(sed -n 's/^moduleChannel=//p' "$MODPATH/build-info.prop" 2>/dev/null | head -n 1)"
+fi
+case "$UPDATE_CHANNEL" in
+    stable) UPDATE_CHANNEL_LABEL="稳定版" ;;
+    prerelease) UPDATE_CHANNEL_LABEL="预发布版" ;;
+    "") UPDATE_CHANNEL_LABEL="" ;;
+    *) UPDATE_CHANNEL_LABEL="$UPDATE_CHANNEL" ;;
+esac
+[ -n "$UPDATE_CHANNEL_LABEL" ] && ui_print "- 更新渠道: $UPDATE_CHANNEL_LABEL"
+
 ui_print "- 检查依赖: runsvdir-magisk"
 
 runsvdir_module_ok || abort_missing_dep
@@ -177,6 +192,12 @@ else
     ui_print "  启动脚本: $SVC/run      (按需修改)"
     ui_print "  配置目录: $SVC/workdir   (放入 config.json)"
     ui_print "  当前状态: 已停用 (存在 down 文件)"
+fi
+
+if [ -n "$UPDATE_CHANNEL_LABEL" ]; then
+    ui_print ""
+    ui_print "更新渠道: $UPDATE_CHANNEL_LABEL"
+    ui_print "  可在操作按钮菜单里切换 稳定版 / 预发布版"
 fi
 
 ui_print ""

@@ -38,6 +38,8 @@ Flash the newer package over the old one; your config and autostart setting are 
 sv restart /data/adb/runsvdir/service/sing-box
 ```
 
+The manager can also check for updates by itself; switch between the **stable** and **prerelease** channel from the module action menu.
+
 ## Uninstall
 
 This removes the whole service folder, including your config. Back it up first.

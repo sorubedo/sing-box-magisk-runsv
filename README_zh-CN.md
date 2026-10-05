@@ -38,6 +38,8 @@ tail -f /data/adb/runsvdir/log/sv/sing-box/current    # 查看日志
 sv restart /data/adb/runsvdir/service/sing-box
 ```
 
+管理器也能自己检测更新；在模块操作菜单里可切换 **稳定版 / 预发布版** 渠道。
+
 ## 卸载
 
 卸载会删除整个服务目录，包含配置文件，注意提前备份。
