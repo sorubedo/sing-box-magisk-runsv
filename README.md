@@ -2,111 +2,48 @@
 
 [English](README.md) | [中文](README_zh-CN.md)
 
-[sing-box](https://github.com/SagerNet/sing-box) as a runsv service for Magisk/KernelSU.
+Run [sing-box](https://github.com/SagerNet/sing-box) as an autostart runsv service on Magisk / KernelSU / APatch.
 
-This project packages the upstream sing-box binary as a runsv service for persistent background execution on Android.
+The version follows the official sing-box version. Two download channels: **Release** (stable) and **Pre-release** (test).
 
-| | |
-|---|---|
-| **Upstream** | [SagerNet/sing-box](https://github.com/SagerNet/sing-box) |
-| **Upstream License** | [GPL-3.0](https://github.com/SagerNet/sing-box/blob/main/LICENSE) |
+## Install
 
-## Dependencies
+1. Install [runsvdir-magisk](https://github.com/sorubedo/runsvdir-magisk) first, then reboot.
+2. Flash this module (`arm64-v8a` for most phones), then reboot.
+3. Put your config at `/data/adb/runsvdir/service/sing-box/workdir/config.json`.
 
-- [runsvdir-magisk](https://github.com/sorubedo/runsvdir-magisk)
+> Without runsvdir-magisk the installer stops and tells you what is missing.
 
-## Download
+## Start
 
-Release attachments are **not** kept in sync with upstream sing-box versions.
-Use GitHub Actions to get the latest build:
-
-1. Go to the [Build Workflow](https://github.com/sorubedo/sing-box-magisk-runsv/actions/workflows/build.yml)
-2. Click **Run workflow** -> **Run workflow**
-3. Download the artifact whose suffix matches your device: `arm64-v8a`, `armeabi-v7a`, `x86_64`, or `x86`
-
-## Installation
-
-1. Install `runsvdir-magisk`, then install this module in Magisk/KernelSU.
-2. Reboot the device.
-3. Place your sing-box configuration at `/data/adb/sv/sing-box/workdir/config.json`.
-4. Optionally copy `/data/adb/sv/sing-box/conf.example` to `/data/adb/sv/sing-box/conf` and edit the service settings.
-5. Enable `sing-box` from the runsvdir WebUI, or run `ln -s /data/adb/sv/sing-box /data/adb/runsvdir/service/` in a root shell.
-
-The module does not include or generate a sing-box configuration. The service cannot start until you provide a valid configuration.
-
-## Service Settings
-
-Create `/data/adb/sv/sing-box/conf` to customize the service. All variables are optional.
-
-| Variable | Default | Description |
-|---|---|---|
-| `WAIT_DECRYPT` | `0` | Wait for storage decryption before starting |
-| `CHPST_USER` | `root:net_admin` | User and groups for `chpst` |
-| `SINGBOX_ARGS` | `-D ./workdir` | Arguments passed to `sing-box` |
-
-Example:
+Nothing starts by itself on a fresh install. Tap the module **action** button (Volume Down to move, Volume Up to run) and pick "start + enable". Or use the shell:
 
 ```sh
-WAIT_DECRYPT=0
-CHPST_USER="root:net_admin"
-SINGBOX_ARGS="-D ./workdir"
+SVC=/data/adb/runsvdir/service/sing-box
+
+SVDIR=/data/adb/runsvdir/service sv-enable sing-box   # start + autostart
+SVDIR=/data/adb/runsvdir/service sv-disable sing-box  # stop + no autostart
+sv up $SVC        # start this time
+sv down $SVC      # stop this time
+sv restart $SVC   # restart
+sv status $SVC    # status
+tail -f /data/adb/runsvdir/log/sv/sing-box/current    # logs
 ```
 
-To use a configuration directory outside the service directory, set `SINGBOX_ARGS` accordingly:
+## Update
+
+Flash the newer package over the old one; your config and autostart setting are kept. If you edited `run` / `log/run`, the installer asks with the volume keys: Volume Up updates the binary only, Volume Down also updates the scripts. Restart the service afterwards:
 
 ```sh
-SINGBOX_ARGS="-D /storage/emulated/0/sing-box"
-```
-
-If the target is under `/storage/emulated/0/`, set `WAIT_DECRYPT=1` so the service starts after device storage becomes available.
-
-## Action Button
-
-Click the action button in Magisk/KernelSU and use the volume keys:
-
-- **Vol Up** - Show the sing-box version
-- **Vol Down** - Validate the active configuration
-
-## Command Line
-
-Control the service from a root shell:
-
-```sh
-sv-enable sing-box
-sv-disable sing-box
-
-sv up sing-box
-sv down sing-box
-sv status sing-box
-
-tail -f /data/adb/runsvdir/log/sv/sing-box/current
-sing-box -D /data/adb/sv/sing-box/workdir check
-```
-
-## Manual Binary Update
-
-Replace the binary without reinstalling the module:
-
-```sh
-cp new-sing-box /data/adb/modules/sing-box-runsv/system/bin/sing-box
-chmod +x /data/adb/modules/sing-box-runsv/system/bin/sing-box
-reboot
+sv restart /data/adb/runsvdir/service/sing-box
 ```
 
 ## Uninstall
 
-Uninstalling the module removes:
+This removes the whole service folder, including your config. Back it up first.
 
-1. `/data/adb/runsvdir/service/sing-box`
-2. `/data/adb/sv/sing-box`, including its configuration and runtime data
+## FAQ
 
-Store the configuration directory outside `/data/adb/sv/sing-box/` if it must survive module removal.
-
-## Developer Build
-
-```sh
-./fetch.sh
-./package.sh
-```
-
-`fetch.sh` downloads sing-box for all supported architectures. `package.sh` creates one flashable ZIP per ABI; pass ABI names to build only selected targets.
+- **Installer says runsvdir-magisk is missing**: install runsvdir-magisk, reboot, then flash this module.
+- **Service is not running**: check the log, or use "validate config" in the action menu.
+- **Want the config under /sdcard**: edit `run` in the service folder, point `SINGBOX_ARGS` at your folder, and set `WAIT_DECRYPT=1`.

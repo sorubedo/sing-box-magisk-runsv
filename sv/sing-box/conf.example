@@ -1,3 +1,0 @@
-WAIT_DECRYPT=0
-CHPST_USER="root:net_admin"
-SINGBOX_ARGS="-D ./workdir"

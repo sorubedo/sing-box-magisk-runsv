@@ -1,0 +1,55 @@
+#!/system/bin/sh
+# sing-box runsv service (main service).
+# Installed to /data/adb/runsvdir/service/sing-box/run on a fresh install.
+# Edit it freely: it is only written again when the service folder is missing.
+exec 2>&1
+
+cd "$(dirname "$0")" || exit 1
+
+# ----------------------- user-editable settings -----------------------
+# Run sing-box as this user:group. busybox setuidgid drops privileges
+# (setgroups + setgid + setuid) before executing the binary.
+RUN_AS="root:net_admin"
+# Arguments passed to sing-box. The config lives in ./workdir (this folder).
+SINGBOX_ARGS="-D ./workdir"
+# Set to 1 to wait until user storage is decrypted before starting.
+# Enable this when SINGBOX_ARGS points at /storage/emulated/0/...
+WAIT_DECRYPT=0
+# ----------------------------------------------------------------------
+
+# setuidgid is a busybox applet, and each root manager ships busybox in a
+# different place. If it is not already on PATH, add the known directories
+# and then resolve an absolute path.
+if ! command -v busybox >/dev/null 2>&1; then
+    PATH="/data/adb/magisk:/data/adb/ksu/bin:/data/adb/ap/bin:$PATH:/data/data/com.termux/files/usr/bin"
+    export PATH
+fi
+
+if command -v busybox >/dev/null 2>&1; then
+    BUSYBOX=busybox
+else
+    BUSYBOX=""
+    for candidate in /data/adb/magisk/busybox /data/adb/ksu/bin/busybox /data/adb/ap/bin/busybox; do
+        if [ -x "$candidate" ]; then
+            BUSYBOX="$candidate"
+            break
+        fi
+    done
+fi
+
+if [ -z "$BUSYBOX" ]; then
+    echo "sing-box(runsv): busybox not found, cannot use setuidgid; aborting"
+    exit 1
+fi
+
+if [ "$WAIT_DECRYPT" != "0" ]; then
+    echo "sing-box(runsv): waiting for user storage decryption..."
+    if [ "$(getprop sys.user.0.ce_available)" != "true" ]; then
+        echo "sing-box(runsv): storage not decrypted yet, retrying"
+        sleep 10
+        exit 1
+    fi
+    echo "sing-box(runsv): storage ready"
+fi
+
+exec "$BUSYBOX" setuidgid "$RUN_AS" ./bin/sing-box $SINGBOX_ARGS run
