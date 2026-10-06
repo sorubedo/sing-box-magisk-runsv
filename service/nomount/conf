@@ -1,0 +1,7 @@
+# sing-box runsv service settings. Loaded by ./run and by the module action menu.
+
+# Arguments passed to sing-box. The config lives in ./workdir (this folder).
+SINGBOX_ARGS="-D ./workdir"
+# Set to 1 to wait until user storage is decrypted before starting.
+# Enable this when SINGBOX_ARGS points at /storage/emulated/0/... .
+WAIT_DECRYPT=0

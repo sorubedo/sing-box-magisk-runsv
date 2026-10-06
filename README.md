@@ -13,11 +13,11 @@ The version follows the official sing-box version. There are two release channel
 | Core binary | `.../service/sing-box/bin/sing-box` (service folder) | module `system/bin/sing-box`, mounted at `/system/bin/sing-box` |
 | Mounts anything? | no | yes, ships the core into `/system/bin` |
 | Apply a new core | `sv restart` reloads it | reboot (the new mount only appears after a reboot) |
-| Drop privileges with `setuidgid` | not possible | possible |
+| Drop privileges with `chpst` | no, runs as root | optional |
 
-Both variants keep `RUN_AS="root:net_admin"` by default (sing-box needs `CAP_NET_ADMIN` for the tunnel).
+The user-editable settings (`RUN_AS`, `SINGBOX_ARGS`, `WAIT_DECRYPT`) live in `conf` next to `run`, and `run` loads it. Both variants keep `RUN_AS="root:net_admin"` by default (sing-box needs `CAP_NET_ADMIN` for the tunnel).
 
-The reason for the two variants: `/data/adb` is not readable by normal users, so a `nomount` core can only run as root — a `setuidgid` drop to a normal user cannot read/execute the binary. The `mount` variant puts the core on `/system/bin` (world-readable/executable), so you can drop it to a normal user if you want; the default `root:net_admin` still works either way.
+The reason for the two variants: `/data/adb` is not readable by normal users, so a `nomount` core can only run as root and does not drop privileges at all. The `mount` variant puts the core on `/system/bin` (world-readable/executable) and drops with `chpst`, which can also set extra groups; the default `root:net_admin` keeps uid 0 so the tunnel still works.
 
 Both variants share the same module id, so flashing the other variant over the installed one switches it in place.
 
@@ -47,7 +47,7 @@ tail -f /data/adb/runsvdir/log/sv/sing-box/current    # logs
 
 ## Update
 
-Flash the newer package over the old one; your config and autostart setting are kept. If you edited `run` / `log/run`, the installer asks with the volume keys: Volume Up updates the binary only, Volume Down also updates the scripts.
+Flash the newer package over the old one; your config and autostart setting are kept. If you edited `run` / `log/run` / `conf`, the installer asks with the volume keys: Volume Up updates the binary only, Volume Down also updates the scripts (`run`, `log/run`, `conf`).
 
 - `nomount`: restart the service afterwards — `sv restart /data/adb/runsvdir/service/sing-box`.
 - `mount`: **reboot** afterwards; the new core is mounted from `/system/bin` only after a reboot.
@@ -62,5 +62,5 @@ This removes the whole service folder, including your config. Back it up first.
 
 - **Installer says runsvdir-magisk is missing**: install runsvdir-magisk, reboot, then flash this module.
 - **Service is not running**: check the log, or use "validate config" in the action menu.
-- **Want the config under /sdcard**: edit `run` in the service folder, point `SINGBOX_ARGS` at your folder, and set `WAIT_DECRYPT=1`.
-- **Want to run the core as a normal user**: use the `mount` variant, then set `RUN_AS` in `run` to that user.
+- **Want the config under /sdcard**: edit `conf` in the service folder, point `SINGBOX_ARGS` at your folder, and set `WAIT_DECRYPT=1`.
+- **Want to run the core as a normal user**: use the `mount` variant, then set `RUN_AS` in `conf` to that user.

@@ -85,7 +85,7 @@ done
     echo "| nomount | service folder (\`/data/adb/runsvdir/service/sing-box/bin/sing-box\`) | \`sv restart\` reloads the binary |"
     echo "| mount | module \`system/bin/sing-box\` mounted at \`/system/bin/sing-box\` | reboot to mount the new binary |"
     echo
-    echo "Use \`mount\` if you want to run the core as a normal user with \`setuidgid\`;"
+    echo "Use \`mount\` if you want to run the core as a normal user with \`chpst\`;"
     echo "\`/data/adb\` is not readable by normal users, only \`/system/bin\` is."
     echo
     echo "## ABI packages"

@@ -22,6 +22,10 @@ for candidate in "$SVC/bin/sing-box" /system/bin/sing-box; do
     fi
 done
 
+# Service settings live in ./conf, the same file the run script loads.
+SINGBOX_ARGS="-D ./workdir"
+[ -f "$SVC/conf" ] && . "$SVC/conf"
+
 # Module directory: action.sh is executed from inside the module folder, so
 # ${0%/*} resolves to /data/adb/modules/sing-box-runsv.
 MODDIR="${0%/*}"
@@ -271,7 +275,7 @@ do_action() {
                 echo "  (缺少 updateJson 且读不到 build-info.prop)"
             fi
             ;;
-        check)      if [ -n "$SB_BIN" ]; then ( cd "$SVC" && "$SB_BIN" -D ./workdir check ) 2>&1; else echo "! 找不到 sing-box 二进制"; fi ;;
+        check)      if [ -n "$SB_BIN" ]; then ( cd "$SVC" && "$SB_BIN" $SINGBOX_ARGS check ) 2>&1; else echo "! 找不到 sing-box 二进制"; fi ;;
         version)    if [ -n "$SB_BIN" ]; then "$SB_BIN" version 2>&1; else echo "! 找不到 sing-box 二进制"; fi ;;
     esac
 }

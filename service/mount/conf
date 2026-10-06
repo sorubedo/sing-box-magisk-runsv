@@ -1,0 +1,12 @@
+# sing-box runsv service settings. Loaded by ./run and by the module action menu.
+
+# Run sing-box as this user:group[:group...]. chpst drops privileges
+# (setgroups + setgid + setuid) before executing the binary: the first group is
+# the primary gid, every listed group a supplementary gid.
+# sing-box needs CAP_NET_ADMIN for the tunnel, so the default keeps uid 0.
+RUN_AS="root:net_admin"
+# Arguments passed to sing-box. The config lives in ./workdir (this folder).
+SINGBOX_ARGS="-D ./workdir"
+# Set to 1 to wait until user storage is decrypted before starting.
+# Enable this when SINGBOX_ARGS points at /storage/emulated/0/... .
+WAIT_DECRYPT=0

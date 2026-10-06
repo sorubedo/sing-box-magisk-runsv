@@ -16,7 +16,7 @@ The module version and versionCode are derived from the upstream sing-box releas
 | nomount | service folder (`/data/adb/runsvdir/service/sing-box/bin/sing-box`) | `sv restart` reloads the binary |
 | mount | module `system/bin/sing-box` mounted at `/system/bin/sing-box` | reboot to mount the new binary |
 
-Use `mount` if you want to run the core as a normal user with `setuidgid`;
+Use `mount` if you want to run the core as a normal user with `chpst`;
 `/data/adb` is not readable by normal users, only `/system/bin` is.
 
 ## ABI packages

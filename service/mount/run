@@ -1,50 +1,23 @@
 #!/system/bin/sh
 # sing-box runsv service (main service) -- "mount" variant.
 # The binary is shipped in the module and mounted at /system/bin/sing-box, so
-# it stays readable/executable even after setuidgid drops privileges to a
-# normal user. The default RUN_AS below is kept as root:net_admin because
-# sing-box needs CAP_NET_ADMIN for the tunnel; change it only if you know the
-# target user can reach the binary and the tunnel device.
+# it stays readable/executable even after chpst drops privileges to a normal
+# user. sing-box needs CAP_NET_ADMIN for the tunnel, so the default keeps uid 0.
+# Settings live in ./conf next to this script.
 # Installed to /data/adb/runsvdir/service/sing-box/run on a fresh install.
-# Edit it freely: it is only written again when the service folder is missing.
+# Edit run / conf freely: they are only written again when the installer's
+# "update scripts" option is used.
 exec 2>&1
 
 cd "$(dirname "$0")" || exit 1
 
-# ----------------------- user-editable settings -----------------------
-# Run sing-box as this user:group. busybox setuidgid drops privileges
-# (setgroups + setgid + setuid) before executing the binary.
-RUN_AS="root:net_admin"
-# Arguments passed to sing-box. The config lives in ./workdir (this folder).
-SINGBOX_ARGS="-D ./workdir"
-# Set to 1 to wait until user storage is decrypted before starting.
-# Enable this when SINGBOX_ARGS points at /storage/emulated/0/...
-WAIT_DECRYPT=0
-# ----------------------------------------------------------------------
+. ./conf
 
-# setuidgid is a busybox applet, and each root manager ships busybox in a
-# different place. If it is not already on PATH, add the known directories
-# and then resolve an absolute path.
-if ! command -v busybox >/dev/null 2>&1; then
-    PATH="/data/adb/magisk:/data/adb/ksu/bin:/data/adb/ap/bin:$PATH:/data/data/com.termux/files/usr/bin"
-    export PATH
-fi
-
-if command -v busybox >/dev/null 2>&1; then
-    BUSYBOX=busybox
+# chpst is a runit applet; runsvdir-magisk installs it into /system/bin.
+if [ -x /system/bin/chpst ]; then
+    CHPST=/system/bin/chpst
 else
-    BUSYBOX=""
-    for candidate in /data/adb/magisk/busybox /data/adb/ksu/bin/busybox /data/adb/ap/bin/busybox; do
-        if [ -x "$candidate" ]; then
-            BUSYBOX="$candidate"
-            break
-        fi
-    done
-fi
-
-if [ -z "$BUSYBOX" ]; then
-    echo "sing-box(runsv): busybox not found, cannot use setuidgid; aborting"
-    exit 1
+    CHPST=chpst
 fi
 
 if [ "$WAIT_DECRYPT" != "0" ]; then
@@ -57,4 +30,4 @@ if [ "$WAIT_DECRYPT" != "0" ]; then
     echo "sing-box(runsv): storage ready"
 fi
 
-exec "$BUSYBOX" setuidgid "$RUN_AS" sing-box $SINGBOX_ARGS run
+exec "$CHPST" -u "$RUN_AS" sing-box $SINGBOX_ARGS run

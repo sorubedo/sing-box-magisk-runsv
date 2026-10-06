@@ -13,11 +13,11 @@
 | 核心位置 | 服务目录 `.../service/sing-box/bin/sing-box` | 模块内置 `system/bin/sing-box`，挂载到 `/system/bin/sing-box` |
 | 是否挂载 | 不挂载任何东西 | 把核心挂进 `/system/bin` |
 | 更新后如何生效 | `sv restart` 重新加载 | **重启手机**（重启后新挂载才生效） |
-| 能否用 `setuidgid` 降权 | 不能 | 可以 |
+| 能否降权 | 不降权，直接以 root 运行 | 可选，用 `chpst` |
 
-两种方式默认都用 `RUN_AS="root:net_admin"`（sing-box 的 TUN 需要 `CAP_NET_ADMIN`）。
+用户可改的配置（`RUN_AS`、`SINGBOX_ARGS`、`WAIT_DECRYPT`）放在 `run` 旁边的 `conf` 里，由 `run` 加载。两种方式默认都用 `RUN_AS="root:net_admin"`（sing-box 的 TUN 需要 `CAP_NET_ADMIN`）。
 
-分成两种方式的原因：`/data/adb` 普通用户无权访问，所以 nomount 的核心只能以 root 运行——用 busybox `setuidgid` 降权到普通用户后，普通用户读不到也执行不了核心。mount 方式把核心放到 `/system/bin`（普通用户可读可执行），需要时就能降权运行；默认的 `root:net_admin` 在两种方式下都照常可用。
+分成两种方式的原因：`/data/adb` 普通用户无权访问，所以 nomount 的核心只能以 root 运行，干脆不降权。mount 方式把核心放到 `/system/bin`（普通用户可读可执行），用 `chpst` 降权（还能带上附加组）；默认的 `root:net_admin` 保持 uid 0，TUN 照常可用。
 
 两种方式共用一个模块 id，直接刷入另一种即可原地切换安装方式。
 
@@ -62,5 +62,5 @@ tail -f /data/adb/runsvdir/log/sv/sing-box/current    # 查看日志
 
 - **安装提示缺少 runsvdir-magisk**：先安装 runsvdir-magisk 并重启，再刷本模块。
 - **服务没起来**：先看日志，或用操作按钮里的「校验配置文件」。
-- **配置想放 /sdcard**：编辑服务目录下的 `run`，把 `SINGBOX_ARGS` 指向你的配置目录，并设 `WAIT_DECRYPT=1`。
-- **想把核心降权到普通用户运行**：用 `mount` 版本，然后把 `run` 里的 `RUN_AS` 改成对应用户。
+- **配置想放 /sdcard**：编辑服务目录下的 `conf`，把 `SINGBOX_ARGS` 指向你的配置目录，并设 `WAIT_DECRYPT=1`。
+- **想把核心降权到普通用户运行**：用 `mount` 版本，然后把 `conf` 里的 `RUN_AS` 改成对应用户。
