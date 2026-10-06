@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# Generate the per-channel / per-ABI update metadata that the Magisk, KernelSU
-# and APatch module update checkers fetch.
+# Generate the per-channel / per-variant / per-ABI update metadata that the
+# Magisk, KernelSU and APatch module update checkers fetch.
 #
-# The files live in update/<channel>/<abi>.json and are committed to the repo,
-# then served over raw.githubusercontent.com. Run fetch.sh first so that
-# out/upstream-versions.env exists.
+# The files live in update/<channel>/<variant>/<abi>.json (variant: nomount |
+# mount) and are committed to the repo, then served over raw.githubusercontent
+# .com. Run fetch.sh first so that out/upstream-versions.env exists.
 #
 # Usage:
 #   ./publish-update.sh [upstream-versions.env]
@@ -22,6 +22,7 @@ PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 OUT_DIR="$PROJECT_DIR/out"
 UPDATE_DIR="$PROJECT_DIR/update"
 ABIS=(arm64-v8a armeabi-v7a x86_64 x86)
+VARIANTS=(nomount mount)
 
 REPO_SLUG="${REPO_SLUG:-sorubedo/sing-box-magisk-runsv}"
 RAW_BASE="${RAW_BASE:-https://raw.githubusercontent.com/$REPO_SLUG/main}"
@@ -53,6 +54,7 @@ CHAN_DIR="$UPDATE_DIR/$CHANNEL"
 mkdir -p "$CHAN_DIR"
 
 # --- changelog --------------------------------------------------------
+# Shared by both variants of this channel.
 if [ -f "$CHANGELOG_SRC" ]; then
     cp "$CHANGELOG_SRC" "$CHAN_DIR/changelog.md"
 else
@@ -66,10 +68,12 @@ CHANGELOG_URL="$RAW_BASE/update/$CHANNEL/changelog.md"
 
 echo "=> channel: $CHANNEL (module version $VERSION, versionCode $VERSION_CODE)"
 
-# --- one update.json per ABI ------------------------------------------
-for ABI in "${ABIS[@]}"; do
-    ZIP_NAME="sing-box-runsv-${VERSION}-${ABI}.zip"
-    cat > "$CHAN_DIR/$ABI.json" <<EOF
+# --- one update.json per variant / ABI --------------------------------
+for VARIANT in "${VARIANTS[@]}"; do
+    mkdir -p "$CHAN_DIR/$VARIANT"
+    for ABI in "${ABIS[@]}"; do
+        ZIP_NAME="sing-box-runsv-${VERSION}-${VARIANT}-${ABI}.zip"
+        cat > "$CHAN_DIR/$VARIANT/$ABI.json" <<EOF
 {
   "version": "$VERSION",
   "versionCode": $VERSION_CODE,
@@ -77,7 +81,8 @@ for ABI in "${ABIS[@]}"; do
   "changelog": "$CHANGELOG_URL"
 }
 EOF
-    echo "   update/$CHANNEL/$ABI.json"
+        echo "   update/$CHANNEL/$VARIANT/$ABI.json"
+    done
 done
 
 echo "   update/$CHANNEL/changelog.md"

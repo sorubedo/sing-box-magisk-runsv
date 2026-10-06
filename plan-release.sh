@@ -2,8 +2,10 @@
 #
 # Decide which module channel(s) need a new release: a channel is selected when
 # the latest upstream sing-box tag for it has no GitHub release in this repo
-# yet. Prints the selected channel names (space separated) and writes them to
-# $GITHUB_OUTPUT as "channels=<...>".
+# yet, or when that release is still missing the nomount/mount asset pairs
+# (e.g. a release published before the variant split). Prints the selected
+# channel names (space separated) and writes them to $GITHUB_OUTPUT as
+# "channels=<...>".
 #
 # Environment:
 #   CHANNEL_INPUT  auto | stable | prerelease   (default: auto)
@@ -42,8 +44,18 @@ latest_prerelease_tag() {
         | jq -r '[.[] | select(.prerelease == true)][0].tag_name // empty'
 }
 
+# True when the release exists at all (used only to phrase the log message).
 release_exists() {
     api "https://api.github.com/repos/$REPO_SLUG/releases/tags/$1" >/dev/null 2>&1
+}
+
+# True only when the release exists AND carries both the nomount and mount
+# ZIPs. A release missing either variant is treated as "needs republishing".
+release_has_variant_assets() {
+    api "https://api.github.com/repos/$REPO_SLUG/releases/tags/$1" 2>/dev/null \
+        | jq -e '([.assets[].name | select(test("-nomount-.+\\.zip$"))] | length > 0)
+                 and ([.assets[].name | select(test("-mount-.+\\.zip$"))] | length > 0)' \
+        >/dev/null 2>&1
 }
 
 case "$CHANNEL_INPUT" in
@@ -67,9 +79,14 @@ for ch in $CHANNELS; do
         continue
     fi
 
-    if [ "$FORCE" != "true" ] && release_exists "$tag"; then
-        echo "skip $ch: $tag already released" >&2
-        continue
+    if [ "$FORCE" != "true" ]; then
+        if release_has_variant_assets "$tag"; then
+            echo "skip $ch: $tag already released with nomount/mount assets" >&2
+            continue
+        fi
+        if release_exists "$tag"; then
+            echo "republish $ch: $tag is missing nomount/mount assets" >&2
+        fi
     fi
 
     echo "select $ch: $tag" >&2

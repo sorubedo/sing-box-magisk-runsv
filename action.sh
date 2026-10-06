@@ -11,7 +11,16 @@
 
 SVDIR=/data/adb/runsvdir/service
 SVC="$SVDIR/sing-box"
-BIN="$SVC/bin/sing-box"
+
+# Locate the core binary: nomount keeps it in the service folder, mount ships
+# it as the module's system payload at /system/bin/sing-box.
+SB_BIN=""
+for candidate in "$SVC/bin/sing-box" /system/bin/sing-box; do
+    if [ -x "$candidate" ]; then
+        SB_BIN="$candidate"
+        break
+    fi
+done
 
 # Module directory: action.sh is executed from inside the module folder, so
 # ${0%/*} resolves to /data/adb/modules/sing-box-runsv.
@@ -28,8 +37,31 @@ say() { echo "$1"; }
 
 # --- update channel helpers -------------------------------------------
 
+# updateJson looks like .../update/<channel>/<variant>/<abi>.json. Older
+# installs used .../update/<channel>/<abi>.json without a variant, which we
+# still parse (variant is inferred from the binary location).
+#
+# Prints "channel|variant|abi" (variant may be empty for a legacy path).
+read_update_fields() {
+    line="$(grep '^updateJson=' "$MODPROP" 2>/dev/null | head -n 1)"
+    [ -n "$line" ] || return 1
+    path="${line#updateJson=}"
+    rest="${path##*/update/}"
+    [ "$rest" = "$path" ] && return 1
+    abi="${rest##*/}"; abi="${abi%.json}"
+    mid="${rest%/*}"        # <channel>/<variant>  or just <channel>
+    ch="${mid%%/*}"
+    if [ "$ch" = "$mid" ]; then
+        variant=""
+    else
+        variant="${mid#*/}"
+    fi
+    echo "$ch|$variant|$abi"
+}
+
 current_channel() {
-    ch="$(sed -n 's|^updateJson=.*/update/\([^/]*\)/[^/]*\.json$|\1|p' "$MODPROP" 2>/dev/null | head -n 1)"
+    ch="$(read_update_fields 2>/dev/null)"
+    ch="${ch%%|*}"
     if [ -z "$ch" ] && [ -f "$MODDIR/build-info.prop" ]; then
         ch="$(sed -n 's|^moduleChannel=||p' "$MODDIR/build-info.prop" 2>/dev/null | head -n 1)"
     fi
@@ -39,8 +71,29 @@ current_channel() {
     esac
 }
 
+current_variant() {
+    f="$(read_update_fields 2>/dev/null)"
+    rest="${f#*|}"; v="${rest%%|*}"
+    if [ -z "$v" ] && [ -f "$MODDIR/build-info.prop" ]; then
+        v="$(sed -n 's|^moduleVariant=||p' "$MODDIR/build-info.prop" 2>/dev/null | head -n 1)"
+    fi
+    # Legacy installs have no variant recorded: infer from the binary location.
+    if [ -z "$v" ]; then
+        if [ -f "$SVC/bin/sing-box" ]; then
+            v=nomount
+        else
+            v=mount
+        fi
+    fi
+    case "$v" in
+        mount | nomount) echo "$v" ;;
+        *) echo "" ;;
+    esac
+}
+
 current_abi() {
-    abi="$(sed -n 's|^updateJson=.*/\([^/]*\)\.json$|\1|p' "$MODPROP" 2>/dev/null | head -n 1)"
+    f="$(read_update_fields 2>/dev/null)"
+    abi="${f##*|}"
     if [ -z "$abi" ] && [ -f "$MODDIR/build-info.prop" ]; then
         abi="$(sed -n 's|^targetAbi=||p' "$MODDIR/build-info.prop" 2>/dev/null | head -n 1)"
     fi
@@ -55,15 +108,24 @@ channel_label() {
     esac
 }
 
+variant_label() {
+    case "$1" in
+        nomount) echo "nomount (服务目录)" ;;
+        mount) echo "mount (/system/bin/sing-box)" ;;
+        *) echo "未知" ;;
+    esac
+}
+
 # Rewrite updateJson in the installed module.prop. Magisk / KernelSU / APatch
 # read module.prop on every module list load, so this takes effect immediately.
 set_channel() {
     new_ch="$1"
     abi="$(current_abi)"
-    if [ -z "$abi" ]; then
+    variant="$(current_variant)"
+    if [ -z "$abi" ] || [ -z "$variant" ]; then
         return 1
     fi
-    url="$RAW_BASE/update/$new_ch/$abi.json"
+    url="$RAW_BASE/update/$new_ch/$variant/$abi.json"
     tmp="$MODPROP.tmp"
     if grep -q '^updateJson=' "$MODPROP" 2>/dev/null; then
         sed "s|^updateJson=.*|updateJson=$url|" "$MODPROP" > "$tmp"
@@ -209,8 +271,8 @@ do_action() {
                 echo "  (缺少 updateJson 且读不到 build-info.prop)"
             fi
             ;;
-        check)      ( cd "$SVC" && ./bin/sing-box -D ./workdir check ) 2>&1 ;;
-        version)    "$BIN" version 2>&1 ;;
+        check)      if [ -n "$SB_BIN" ]; then ( cd "$SVC" && "$SB_BIN" -D ./workdir check ) 2>&1; else echo "! 找不到 sing-box 二进制"; fi ;;
+        version)    if [ -n "$SB_BIN" ]; then "$SB_BIN" version 2>&1; else echo "! 找不到 sing-box 二进制"; fi ;;
     esac
 }
 
@@ -223,6 +285,8 @@ print_frame() {
     echo "            sing-box (runsv)"
     echo "=============================================="
     echo "服务目录: $SVC"
+    echo "安装方式: $(variant_label "$(current_variant)")"
+    echo "二进制:   ${SB_BIN:-未找到}"
     echo ""
     echo "当前状态:"
     "$SV" status "$SVC" 2>&1 | while IFS= read -r l; do echo "  $l"; done

@@ -1,5 +1,10 @@
 #!/system/bin/sh
-# sing-box runsv service (main service).
+# sing-box runsv service (main service) -- "mount" variant.
+# The binary is shipped in the module and mounted at /system/bin/sing-box, so
+# it stays readable/executable even after setuidgid drops privileges to a
+# normal user. The default RUN_AS below is kept as root:net_admin because
+# sing-box needs CAP_NET_ADMIN for the tunnel; change it only if you know the
+# target user can reach the binary and the tunnel device.
 # Installed to /data/adb/runsvdir/service/sing-box/run on a fresh install.
 # Edit it freely: it is only written again when the service folder is missing.
 exec 2>&1
@@ -52,4 +57,4 @@ if [ "$WAIT_DECRYPT" != "0" ]; then
     echo "sing-box(runsv): storage ready"
 fi
 
-exec "$BUSYBOX" setuidgid "$RUN_AS" ./bin/sing-box $SINGBOX_ARGS run
+exec "$BUSYBOX" setuidgid "$RUN_AS" sing-box $SINGBOX_ARGS run

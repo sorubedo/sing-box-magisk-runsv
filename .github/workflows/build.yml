@@ -51,49 +51,54 @@ jobs:
             echo "- Channel: $MODULE_CHANNEL"
             echo "- Module version: $MODULE_VERSION"
             echo "- sing-box upstream: $SING_BOX_TAG"
-            echo "- Packages: arm64-v8a, armeabi-v7a, x86_64, x86"
+            echo "- Variants: nomount, mount"
+            echo "- Packages: arm64-v8a, armeabi-v7a, x86_64, x86 (per variant)"
             echo
             echo '```text'
             cat out/SHA256SUMS
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload arm64-v8a artifact
+      - name: Upload arm64-v8a artifacts (both variants)
         uses: actions/upload-artifact@v4
         with:
           name: sing-box-runsv-${{ steps.prep.outputs.version }}-arm64-v8a
           path: |
-            out/sing-box-runsv-${{ steps.prep.outputs.version }}-arm64-v8a.zip
+            out/sing-box-runsv-${{ steps.prep.outputs.version }}-nomount-arm64-v8a.zip
+            out/sing-box-runsv-${{ steps.prep.outputs.version }}-mount-arm64-v8a.zip
             out/SHA256SUMS
             out/upstream-versions.env
           if-no-files-found: error
 
-      - name: Upload armeabi-v7a artifact
+      - name: Upload armeabi-v7a artifacts (both variants)
         uses: actions/upload-artifact@v4
         with:
           name: sing-box-runsv-${{ steps.prep.outputs.version }}-armeabi-v7a
           path: |
-            out/sing-box-runsv-${{ steps.prep.outputs.version }}-armeabi-v7a.zip
+            out/sing-box-runsv-${{ steps.prep.outputs.version }}-nomount-armeabi-v7a.zip
+            out/sing-box-runsv-${{ steps.prep.outputs.version }}-mount-armeabi-v7a.zip
             out/SHA256SUMS
             out/upstream-versions.env
           if-no-files-found: error
 
-      - name: Upload x86_64 artifact
+      - name: Upload x86_64 artifacts (both variants)
         uses: actions/upload-artifact@v4
         with:
           name: sing-box-runsv-${{ steps.prep.outputs.version }}-x86_64
           path: |
-            out/sing-box-runsv-${{ steps.prep.outputs.version }}-x86_64.zip
+            out/sing-box-runsv-${{ steps.prep.outputs.version }}-nomount-x86_64.zip
+            out/sing-box-runsv-${{ steps.prep.outputs.version }}-mount-x86_64.zip
             out/SHA256SUMS
             out/upstream-versions.env
           if-no-files-found: error
 
-      - name: Upload x86 artifact
+      - name: Upload x86 artifacts (both variants)
         uses: actions/upload-artifact@v4
         with:
           name: sing-box-runsv-${{ steps.prep.outputs.version }}-x86
           path: |
-            out/sing-box-runsv-${{ steps.prep.outputs.version }}-x86.zip
+            out/sing-box-runsv-${{ steps.prep.outputs.version }}-nomount-x86.zip
+            out/sing-box-runsv-${{ steps.prep.outputs.version }}-mount-x86.zip
             out/SHA256SUMS
             out/upstream-versions.env
           if-no-files-found: error

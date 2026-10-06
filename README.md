@@ -4,12 +4,27 @@
 
 Run [sing-box](https://github.com/SagerNet/sing-box) as an autostart runsv service on Magisk / KernelSU / APatch.
 
-The version follows the official sing-box version. Two download channels: **Release** (stable) and **Pre-release** (test).
+The version follows the official sing-box version. There are two release channels, **Release** (stable) and **Pre-release** (test), and each channel is published in two variants, **nomount** and **mount**.
+
+## Variants: nomount vs mount
+
+| | `nomount` | `mount` |
+| --- | --- | --- |
+| Core binary | `.../service/sing-box/bin/sing-box` (service folder) | module `system/bin/sing-box`, mounted at `/system/bin/sing-box` |
+| Mounts anything? | no | yes, ships the core into `/system/bin` |
+| Apply a new core | `sv restart` reloads it | reboot (the new mount only appears after a reboot) |
+| Drop privileges with `setuidgid` | not possible | possible |
+
+Both variants keep `RUN_AS="root:net_admin"` by default (sing-box needs `CAP_NET_ADMIN` for the tunnel).
+
+The reason for the two variants: `/data/adb` is not readable by normal users, so a `nomount` core can only run as root — a `setuidgid` drop to a normal user cannot read/execute the binary. The `mount` variant puts the core on `/system/bin` (world-readable/executable), so you can drop it to a normal user if you want; the default `root:net_admin` still works either way.
+
+Both variants share the same module id, so flashing the other variant over the installed one switches it in place.
 
 ## Install
 
 1. Install [runsvdir-magisk](https://github.com/sorubedo/runsvdir-magisk) first, then reboot.
-2. Flash this module (`arm64-v8a` for most phones), then reboot.
+2. Flash this module. Pick the ABI for your device (`arm64-v8a` for most phones) and the variant you want (`nomount` or `mount`), then reboot.
 3. Put your config at `/data/adb/runsvdir/service/sing-box/workdir/config.json`.
 
 > Without runsvdir-magisk the installer stops and tells you what is missing.
@@ -25,20 +40,19 @@ SVDIR=/data/adb/runsvdir/service sv-enable sing-box   # start + autostart
 SVDIR=/data/adb/runsvdir/service sv-disable sing-box  # stop + no autostart
 sv up $SVC        # start this time
 sv down $SVC      # stop this time
-sv restart $SVC   # restart
+sv restart $SVC   # restart the service (reloads the config)
 sv status $SVC    # status
 tail -f /data/adb/runsvdir/log/sv/sing-box/current    # logs
 ```
 
 ## Update
 
-Flash the newer package over the old one; your config and autostart setting are kept. If you edited `run` / `log/run`, the installer asks with the volume keys: Volume Up updates the binary only, Volume Down also updates the scripts. Restart the service afterwards:
+Flash the newer package over the old one; your config and autostart setting are kept. If you edited `run` / `log/run`, the installer asks with the volume keys: Volume Up updates the binary only, Volume Down also updates the scripts.
 
-```sh
-sv restart /data/adb/runsvdir/service/sing-box
-```
+- `nomount`: restart the service afterwards — `sv restart /data/adb/runsvdir/service/sing-box`.
+- `mount`: **reboot** afterwards; the new core is mounted from `/system/bin` only after a reboot.
 
-The manager can also check for updates by itself; switch between the **stable** and **prerelease** channel from the module action menu.
+The manager can also check for updates by itself; switch between the **stable** and **prerelease** channel (and keep the current variant) from the module action menu.
 
 ## Uninstall
 
@@ -49,3 +63,4 @@ This removes the whole service folder, including your config. Back it up first.
 - **Installer says runsvdir-magisk is missing**: install runsvdir-magisk, reboot, then flash this module.
 - **Service is not running**: check the log, or use "validate config" in the action menu.
 - **Want the config under /sdcard**: edit `run` in the service folder, point `SINGBOX_ARGS` at your folder, and set `WAIT_DECRYPT=1`.
+- **Want to run the core as a normal user**: use the `mount` variant, then set `RUN_AS` in `run` to that user.

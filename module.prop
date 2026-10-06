@@ -1,6 +1,6 @@
 id=sing-box-runsv
-name=sing-box (runsv)
+name=sing-box (runsv, no-mount)
 version=1.14.2
 versionCode=1014021
 author=sorubedo(github)
-description=sing-box as a runsv service for runsvdir-magisk. Version tracks upstream sing-box; binary lives in the service folder (no system mount).
+description=sing-box as a runsv service for runsvdir-magisk. Tracks upstream sing-box. Default (no-mount) build keeps the core in the service folder; flash the mount build to ship it at /system/bin/sing-box.

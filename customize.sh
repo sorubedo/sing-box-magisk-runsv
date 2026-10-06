@@ -3,8 +3,11 @@
 # sing-box (runsv) installer
 #
 #  * requires runsvdir-magisk (services live in /data/adb/runsvdir/service/)
-#  * installs the sing-box binary into the service folder (nothing is mounted)
-#  * never overwrites an existing service definition
+#  * two variants, picked by which ZIP you flash:
+#      nomount : core binary is copied into the service folder (no mount)
+#      mount   : core binary is shipped in system/bin and mounted by the
+#                manager at /system/bin/sing-box; run calls "sing-box"
+#  * never overwrites an existing service definition on a plain update
 #
 
 SVDIR=/data/adb/runsvdir/service
@@ -101,16 +104,35 @@ case "$ARCH" in
         ;;
 esac
 
-if [ ! -f "$MODPATH/bin/$ABI/sing-box" ]; then
-    ui_print "! Wrong package: this ZIP does not contain the $ABI sing-box binary"
-    abort "! Please download the $ABI build for this device"
+# build-info.prop is written by package.sh and carries the channel / variant /
+# ABI this package was built for.
+MODULE_VARIANT=""
+if [ -f "$MODPATH/build-info.prop" ]; then
+    MODULE_VARIANT="$(sed -n 's/^moduleVariant=//p' "$MODPATH/build-info.prop" 2>/dev/null | head -n 1)"
+fi
+case "$MODULE_VARIANT" in
+    mount) ;;
+    nomount) ;;
+    *) MODULE_VARIANT=nomount ;;
+esac
+
+if [ "$MODULE_VARIANT" = "mount" ]; then
+    BIN_SRC="$MODPATH/system/bin/sing-box"
+    VARIANT_LABEL="mount -> /system/bin/sing-box"
+else
+    BIN_SRC="$MODPATH/bin/$ABI/sing-box"
+    VARIANT_LABEL="nomount -> 服务目录 bin/sing-box"
+fi
+
+if [ ! -f "$BIN_SRC" ]; then
+    ui_print "! Wrong package: no $ABI sing-box binary for the $MODULE_VARIANT variant"
+    abort "! Please download the $ABI $MODULE_VARIANT build for this device"
 fi
 
 banner
 ui_print "- 设备架构: $ARCH ($ABI)"
+ui_print "- 安装方式: $VARIANT_LABEL"
 
-# build-info.prop is written by package.sh and carries the channel/ABI this
-# package was built for.
 UPDATE_CHANNEL=""
 if [ -f "$MODPATH/build-info.prop" ]; then
     UPDATE_CHANNEL="$(sed -n 's/^moduleChannel=//p' "$MODPATH/build-info.prop" 2>/dev/null | head -n 1)"
@@ -134,18 +156,53 @@ ui_print ""
 UPDATE=0
 [ -d "$SVC" ] && UPDATE=1
 
+# Which variant is currently installed? The service folder carries a marker so
+# a nomount <-> mount switch can be detected and the run script force-updated.
+INSTALLED_VARIANT=""
+if [ -f "$SVC/.variant" ]; then
+    INSTALLED_VARIANT="$(head -n 1 "$SVC/.variant" 2>/dev/null)"
+elif [ -f "$SVC/bin/sing-box" ]; then
+    INSTALLED_VARIANT="nomount"
+fi
+
+VARIANT_CHANGED=0
+if [ "$UPDATE" -eq 1 ] && [ -n "$INSTALLED_VARIANT" ] && [ "$INSTALLED_VARIANT" != "$MODULE_VARIANT" ]; then
+    VARIANT_CHANGED=1
+fi
+
 if [ "$UPDATE" -eq 1 ]; then
-    choose_update_mode
+    if [ "$VARIANT_CHANGED" -eq 1 ]; then
+        UPDATE_MODE=scripts
+        ui_print "- 检测到安装方式变化: $INSTALLED_VARIANT -> $MODULE_VARIANT"
+        ui_print "- 将自动同步更新 run / log/run 以匹配新的安装方式"
+    else
+        choose_update_mode
+    fi
 fi
 
 # --- install / update the binary --------------------------------------
-# Copy to a temp name and rename, so a running service keeps its old inode
-# and the new binary takes effect on the next "sv restart".
-mkdir -p "$SVC/bin"
-cp -f "$MODPATH/bin/$ABI/sing-box" "$SVC/bin/.sing-box.new"
-chmod 0755 "$SVC/bin/.sing-box.new"
-chown 0:0 "$SVC/bin/.sing-box.new" 2>/dev/null
-mv -f "$SVC/bin/.sing-box.new" "$SVC/bin/sing-box"
+mkdir -p "$SVC"
+if [ "$MODULE_VARIANT" = "mount" ]; then
+    # The binary is the module's system payload; the manager mounts it at
+    # /system/bin/sing-box (effective after reboot). Drop any stale copy left
+    # behind by a previous nomount install.
+    chmod 0755 "$MODPATH/system/bin/sing-box" 2>/dev/null
+    rm -f "$SVC/bin/sing-box"
+    rmdir "$SVC/bin" 2>/dev/null
+else
+    # Copy to a temp name and rename, so a running service keeps its old inode
+    # and the new binary takes effect on the next "sv restart".
+    mkdir -p "$SVC/bin"
+    cp -f "$MODPATH/bin/$ABI/sing-box" "$SVC/bin/.sing-box.new"
+    chmod 0755 "$SVC/bin/.sing-box.new"
+    chown 0:0 "$SVC/bin/.sing-box.new" 2>/dev/null
+    mv -f "$SVC/bin/.sing-box.new" "$SVC/bin/sing-box"
+fi
+
+# Remember the variant so a later flash can detect a switch.
+printf '%s\n' "$MODULE_VARIANT" > "$SVC/.variant"
+chmod 0644 "$SVC/.variant" 2>/dev/null
+chown 0:0 "$SVC/.variant" 2>/dev/null
 
 # --- fresh install: create the service definition ---------------------
 if [ "$UPDATE" -eq 0 ]; then
@@ -165,6 +222,8 @@ elif [ "$UPDATE_MODE" = "scripts" ]; then
     chown 0:0 "$SVC/run" "$SVC/log/run" 2>/dev/null
 fi
 
+# Keep $MODPATH/system for the mount variant (it is the payload that gets
+# mounted); remove the nomount staging dirs and the installer-only service tree.
 rm -rf "$MODPATH/bin" "$MODPATH/service"
 
 # --- messages ---------------------------------------------------------
@@ -182,8 +241,13 @@ if [ "$UPDATE" -eq 1 ]; then
         ui_print "  现有 run / log/run 保持不变"
     fi
     ui_print ""
-    ui_print "!! 更新后请重启服务以加载新二进制:"
-    ui_print "   sv restart $SVC"
+    if [ "$MODULE_VARIANT" = "mount" ]; then
+        ui_print "!! 本安装方式下，更新后请重启手机，让新的"
+        ui_print "   /system/bin/sing-box 挂载生效"
+    else
+        ui_print "!! 更新后请重启服务以加载新二进制:"
+        ui_print "   sv restart $SVC"
+    fi
 else
     ui_print "=============================================="
     ui_print "  首次安装完成"
@@ -191,6 +255,11 @@ else
     ui_print "  服务目录: $SVC"
     ui_print "  启动脚本: $SVC/run      (按需修改)"
     ui_print "  配置目录: $SVC/workdir   (放入 config.json)"
+    if [ "$MODULE_VARIANT" = "mount" ]; then
+        ui_print "  核心二进制: /system/bin/sing-box (挂载, 重启后生效)"
+    else
+        ui_print "  核心二进制: $SVC/bin/sing-box"
+    fi
     ui_print "  当前状态: 已停用 (存在 down 文件)"
 fi
 
@@ -214,5 +283,8 @@ ui_print "  启动并启用:   SVDIR=$SVDIR sv-enable sing-box"
 ui_print "  停止并停用:   SVDIR=$SVDIR sv-disable sing-box"
 ui_print "  查看日志:     tail -f /data/adb/runsvdir/log/sv/sing-box/current"
 ui_print "----------------------------------------------------"
-ui_print ""
-ui_print "- 放置配置后，执行上方的启动命令或使用模块操作按钮"
+if [ "$MODULE_VARIANT" = "mount" ]; then
+    ui_print "- 注意: 修改配置文件后可用 sv restart 生效；但更新模块后需重启手机"
+else
+    ui_print "- 放置配置后，执行上方的启动命令或使用模块操作按钮"
+fi

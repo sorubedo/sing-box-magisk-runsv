@@ -2,7 +2,7 @@
 #
 # Build and publish one release channel (stable | prerelease):
 #   fetch sing-box binaries -> package every ABI -> create/update the GitHub
-#   release -> regenerate update/<channel>/<abi>.json.
+#   release (nomount + mount) -> regenerate update/<channel>/<variant>/<abi>.json.
 #
 # Meant to run inside the "Build and Release" workflow, but a local dry run is
 # possible with DRY_RUN=true (skips the GitHub release calls).
@@ -51,8 +51,10 @@ bash package.sh
 
 # Explicit asset list for this channel (never a wildcard).
 ASSETS=()
-for abi in arm64-v8a armeabi-v7a x86_64 x86; do
-    ASSETS+=("$OUT_DIR/sing-box-runsv-$VERSION-$abi.zip")
+for variant in nomount mount; do
+    for abi in arm64-v8a armeabi-v7a x86_64 x86; do
+        ASSETS+=("$OUT_DIR/sing-box-runsv-$VERSION-$variant-$abi.zip")
+    done
 done
 ASSETS+=("$OUT_DIR/SHA256SUMS" "$OUT_DIR/upstream-versions.env")
 
@@ -76,6 +78,16 @@ done
     echo
     echo "The module version and versionCode are derived from the upstream sing-box release."
     echo
+    echo "## Variants"
+    echo
+    echo "| Variant | Core binary location | Update note |"
+    echo "| --- | --- | --- |"
+    echo "| nomount | service folder (\`/data/adb/runsvdir/service/sing-box/bin/sing-box\`) | \`sv restart\` reloads the binary |"
+    echo "| mount | module \`system/bin/sing-box\` mounted at \`/system/bin/sing-box\` | reboot to mount the new binary |"
+    echo
+    echo "Use \`mount\` if you want to run the core as a normal user with \`setuidgid\`;"
+    echo "\`/data/adb\` is not readable by normal users, only \`/system/bin\` is."
+    echo
     echo "## ABI packages"
     echo
     echo "| Asset suffix | Android / Magisk architecture |"
@@ -85,7 +97,7 @@ done
     echo "| x86_64 | x64 |"
     echo "| x86 | x86 |"
     echo
-    echo "Each ZIP contains the binary for one ABI only. Download the asset matching the target device."
+    echo "Each ZIP is one variant + one ABI only (assets are named \`...-<variant>-<abi>.zip\`). Download the asset matching the target device and the variant you want."
     echo
     echo "Requires [runsvdir-magisk](https://github.com/sorubedo/runsvdir-magisk) to be installed and rebooted first."
     echo
