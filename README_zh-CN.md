@@ -15,12 +15,6 @@
 | 更新后如何生效 | `sv restart` 重新加载 | **重启手机**（重启后新挂载才生效） |
 | 能否降权 | 不降权，直接以 root 运行 | 可选，用 `chpst` |
 
-用户可改的配置（`RUN_AS`、`SINGBOX_ARGS`、`WAIT_DECRYPT`）放在 `run` 旁边的 `conf` 里，由 `run` 加载。两种方式默认都用 `RUN_AS="root:net_admin"`（sing-box 的 TUN 需要 `CAP_NET_ADMIN`）。
-
-分成两种方式的原因：`/data/adb` 普通用户无权访问，所以 nomount 的核心只能以 root 运行，干脆不降权。mount 方式把核心放到 `/system/bin`（普通用户可读可执行），用 `chpst` 降权（还能带上附加组）；默认的 `root:net_admin` 保持 uid 0，TUN 照常可用。
-
-两种方式共用一个模块 id，直接刷入另一种即可原地切换安装方式。
-
 ## 安装
 
 1. 先安装 [runsvdir-magisk](https://github.com/sorubedo/runsvdir-magisk) 并重启手机。
