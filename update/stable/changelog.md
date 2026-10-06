@@ -35,12 +35,12 @@ Requires [runsvdir-magisk](https://github.com/sorubedo/runsvdir-magisk) to be in
 ## SHA-256
 
 ```text
-fad712c48671c75022de0b0d01e490ef2083b7afce6a8a7c99599311e703981b  sing-box-runsv-1.14.2-nomount-arm64-v8a.zip
-d80547d8f176a3a4ac6298bb3662dda0e766f91d3f6b494bba0717204bbd58d1  sing-box-runsv-1.14.2-nomount-armeabi-v7a.zip
-3c2e2a84215d82cf914a612df79fa55b1067b37db92ee5cfef7704c700ff03e6  sing-box-runsv-1.14.2-nomount-x86_64.zip
-359a889c5f043237a0eaed0034f04b5101787d2d56ce4b33c1859e0cde30bd2d  sing-box-runsv-1.14.2-nomount-x86.zip
-98421576f0dc298a970e0c056beefd9656512239bdbf1a5fa8e7379832a7664b  sing-box-runsv-1.14.2-mount-arm64-v8a.zip
-7ee9cb72216a0b3b32323431ed4ff502d1d0a9825d0da48bb32b504b5cfef737  sing-box-runsv-1.14.2-mount-armeabi-v7a.zip
-2d1359a57528d28e52d7690285cbc26b35de0322604cdeb126b1d6a653d9c4c4  sing-box-runsv-1.14.2-mount-x86_64.zip
-da482be0393376eabe4429812ae9c091c6b6b42788e64112b026176a8d31c7db  sing-box-runsv-1.14.2-mount-x86.zip
+75f6c8157d6f474f72501ca0663503df4f46298a0f171ff7bc587c5d672d10e8  sing-box-runsv-1.14.2-nomount-arm64-v8a.zip
+9b4886f9619d00d80413cadca96d4e9c30e8b3090b70775a2f03c982330e5cc4  sing-box-runsv-1.14.2-nomount-armeabi-v7a.zip
+de631c13c2e4e6b58bb1e9238c73cd546e8a8131ce8788498460e51ccb7ac30c  sing-box-runsv-1.14.2-nomount-x86_64.zip
+7dca1523862eedbbd7d080f33fe5235d4bdf10f59238f77e416fd6247c4da3b2  sing-box-runsv-1.14.2-nomount-x86.zip
+52d464da06e9c33003f81cbcd407f932b038ecd534362aaf11b4d1c7d8dfcb4e  sing-box-runsv-1.14.2-mount-arm64-v8a.zip
+326697789760a68dd512c076ace6a0bdbcf20e482c37b7638d181fe5b569b267  sing-box-runsv-1.14.2-mount-armeabi-v7a.zip
+fb94a245ab6f38401b9bedf36dda1a0ac1011752ee652c7f2837986dadff5fd5  sing-box-runsv-1.14.2-mount-x86_64.zip
+ffe22e31fc1446d63ba3bd8e8cab62a091fb84be5c5f15b96bb7257679bcf91f  sing-box-runsv-1.14.2-mount-x86.zip
 ```
