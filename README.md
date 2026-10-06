@@ -15,12 +15,6 @@ The version follows the official sing-box version. There are two release channel
 | Apply a new core | `sv restart` reloads it | reboot (the new mount only appears after a reboot) |
 | Drop privileges with `chpst` | no, runs as root | optional |
 
-The user-editable settings (`RUN_AS`, `SINGBOX_ARGS`, `WAIT_DECRYPT`) live in `conf` next to `run`, and `run` loads it. Both variants keep `RUN_AS="root:net_admin"` by default (sing-box needs `CAP_NET_ADMIN` for the tunnel).
-
-The reason for the two variants: `/data/adb` is not readable by normal users, so a `nomount` core can only run as root and does not drop privileges at all. The `mount` variant puts the core on `/system/bin` (world-readable/executable) and drops with `chpst`, which can also set extra groups; the default `root:net_admin` keeps uid 0 so the tunnel still works.
-
-Both variants share the same module id, so flashing the other variant over the installed one switches it in place.
-
 ## Install
 
 1. Install [runsvdir-magisk](https://github.com/sorubedo/runsvdir-magisk) first, then reboot.
