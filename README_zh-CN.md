@@ -41,7 +41,7 @@ tail -f /data/adb/runsvdir/log/sv/sing-box/current    # 查看日志
 
 ## 更新
 
-覆盖刷入即可，配置和自启设置保留。如果你改过 `run` / `log/run`，安装时会用音量键询问：音量上只更新二进制，音量下同时更新脚本。
+覆盖刷入即可，配置和自启设置保留。如果你改过 `run` / `conf` / `log/run`，安装时会用音量键询问：音量上只更新二进制，音量下执行完整更新（用安装包里的 `service/sing-box` 目录覆盖服务目录，同步 run / conf / log/run / 二进制）。只存在于服务目录里的文件不会被删除。
 
 - `nomount`：更新后重启服务即可 —— `sv restart /data/adb/runsvdir/service/sing-box`。
 - `mount`：更新后请**重启手机**，新的核心在重启后才会从 `/system/bin` 挂载生效。

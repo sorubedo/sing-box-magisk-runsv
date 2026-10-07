@@ -124,28 +124,32 @@ for VARIANT in "${VARIANTS[@]}"; do
         chmod 755 "$STAGE_DIR/META-INF/com/google/android/update-binary"
         chmod 755 "$STAGE_DIR/customize.sh" "$STAGE_DIR/uninstall.sh" "$STAGE_DIR/action.sh"
 
-        # Assemble the service definition: shared files + this variant's
-        # run and conf.
+        # Assemble the service/sing-box tree. It is the single source of truth
+        # the installer merges into the service folder, so it carries the
+        # shared files, this variant's run/conf, the nomount binary and the
+        # default "down" (autostart disabled) marker.
         mkdir -p "$STAGE_DIR/service/sing-box/log"
         cp -a "$PROJECT_DIR/service/common/finish" "$STAGE_DIR/service/sing-box/finish"
         cp -a "$PROJECT_DIR/service/common/log/run" "$STAGE_DIR/service/sing-box/log/run"
+        cp -a "$PROJECT_DIR/service/common/down" "$STAGE_DIR/service/sing-box/down"
         cp -a "$PROJECT_DIR/service/$VARIANT/run" "$STAGE_DIR/service/sing-box/run"
         cp -a "$PROJECT_DIR/service/$VARIANT/conf" "$STAGE_DIR/service/sing-box/conf"
         chmod 755 "$STAGE_DIR/service/sing-box/run" \
             "$STAGE_DIR/service/sing-box/finish" \
             "$STAGE_DIR/service/sing-box/log/run"
-        chmod 644 "$STAGE_DIR/service/sing-box/conf"
+        chmod 644 "$STAGE_DIR/service/sing-box/conf" "$STAGE_DIR/service/sing-box/down"
 
-        # nomount: ship the binary for customize.sh to copy into the service
-        # folder. mount: ship it as the module's system payload so the manager
-        # mounts it at /system/bin/sing-box.
+        # nomount: ship the binary inside the service tree so a plain merge
+        # refreshes it too. mount: ship it as the module's system payload so the
+        # manager mounts it at /system/bin/sing-box.
         if [ "$VARIANT" = "mount" ]; then
             mkdir -p "$STAGE_DIR/system/bin"
             cp -a "$PROJECT_DIR/bin/$ABI/$BINARY" "$STAGE_DIR/system/bin/"
             chmod 755 "$STAGE_DIR/system/bin/$BINARY"
         else
-            mkdir -p "$STAGE_DIR/bin/$ABI"
-            cp -a "$PROJECT_DIR/bin/$ABI/$BINARY" "$STAGE_DIR/bin/$ABI/"
+            mkdir -p "$STAGE_DIR/service/sing-box/bin"
+            cp -a "$PROJECT_DIR/bin/$ABI/$BINARY" "$STAGE_DIR/service/sing-box/bin/"
+            chmod 755 "$STAGE_DIR/service/sing-box/bin/$BINARY"
         fi
 
         # Bake the per-channel, per-variant, per-ABI update source into
