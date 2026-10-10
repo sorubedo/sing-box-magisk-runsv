@@ -4,8 +4,8 @@
 | --- | --- |
 | Module | sing-box-runsv |
 | Channel | stable |
-| Module version | 1.14.2 |
-| sing-box upstream | [v1.14.2](https://github.com/SagerNet/sing-box/releases/tag/v1.14.2) |
+| Module version | 1.14.3 |
+| sing-box upstream | [v1.14.3](https://github.com/SagerNet/sing-box/releases/tag/v1.14.3) |
 
 The module version and versionCode are derived from the upstream sing-box release.
 
@@ -35,12 +35,12 @@ Requires [runsvdir-magisk](https://github.com/sorubedo/runsvdir-magisk) to be in
 ## SHA-256
 
 ```text
-499d04b5deb4b60b5cbf3f58a4bd5ff74c262e760d346c5f60161b53d55c682f  sing-box-runsv-1.14.2-nomount-arm64-v8a.zip
-005dba4982161ce7184a80826bdbb682abcda43ebbeefd7698137971ae6df3c5  sing-box-runsv-1.14.2-nomount-armeabi-v7a.zip
-0bed374c49f791aa30348b2943d8ff66b9017cc7a2494f4a065d775b094ab699  sing-box-runsv-1.14.2-nomount-x86_64.zip
-fd04e8908eec561f0d18ca17cc4507687b422d0218b498694afd56dc23610358  sing-box-runsv-1.14.2-nomount-x86.zip
-005750fe3d6d178987f2a379bf24396340b925b20d4833f84d152c0b262cc9e0  sing-box-runsv-1.14.2-mount-arm64-v8a.zip
-5d669917154bb79a3cbb1751e5b38e8460a45c05eeb777de144e7a0cb21a0db7  sing-box-runsv-1.14.2-mount-armeabi-v7a.zip
-ba27ad58a29f0b39da5548e411fb46d338425c8c0e5b2579885e6aceca8fd415  sing-box-runsv-1.14.2-mount-x86_64.zip
-efdadc2c6d36ccdb0233d46342373645ac4f1634b4720f2056ce722b862eed45  sing-box-runsv-1.14.2-mount-x86.zip
+072a272dd9647bf09168410a9d8bddc9d01a9f26be1f93ad1883da06de4c5e92  sing-box-runsv-1.14.3-nomount-arm64-v8a.zip
+801e9e44155b4139d81d378aca05813f40727bbdf63a65fd052513dac3ea6d4e  sing-box-runsv-1.14.3-nomount-armeabi-v7a.zip
+db0fac0bcd560445c0de7422b1ff8718a81a3a68dee3631268ac9432dfa1f50f  sing-box-runsv-1.14.3-nomount-x86_64.zip
+7c0e9b9435efc16908515c935eb99247bf548c1fb4fd2478ae6e2b6a81e38419  sing-box-runsv-1.14.3-nomount-x86.zip
+c0af7ddd3086edd13235762028ce58815f62a0bf5956a5613d1616a3909aa16e  sing-box-runsv-1.14.3-mount-arm64-v8a.zip
+87be3f6caf168b136b40e9b2793a7a1f39e1e181487cb115493b1b21b526f7ca  sing-box-runsv-1.14.3-mount-armeabi-v7a.zip
+d6e57f568e76a65fd9d31c4ca018925a5680a1215737f675c910f8df639ad5b7  sing-box-runsv-1.14.3-mount-x86_64.zip
+86670dd71fe4b925971466563536a2132636d84c5d985366e237d38ea6f88e1f  sing-box-runsv-1.14.3-mount-x86.zip
 ```

@@ -4,8 +4,8 @@
 | --- | --- |
 | Module | sing-box-runsv |
 | Channel | prerelease |
-| Module version | 1.15.0-alpha.10 |
-| sing-box upstream | [v1.15.0-alpha.10](https://github.com/SagerNet/sing-box/releases/tag/v1.15.0-alpha.10) |
+| Module version | 1.15.0-alpha.11 |
+| sing-box upstream | [v1.15.0-alpha.11](https://github.com/SagerNet/sing-box/releases/tag/v1.15.0-alpha.11) |
 
 The module version and versionCode are derived from the upstream sing-box release.
 
@@ -35,12 +35,12 @@ Requires [runsvdir-magisk](https://github.com/sorubedo/runsvdir-magisk) to be in
 ## SHA-256
 
 ```text
-8a5033cc12c1c39f6351d28fa54af829c9e4afd64d83c0d9c1dcb8b2cb1f8128  sing-box-runsv-1.15.0-alpha.10-nomount-arm64-v8a.zip
-c0a49cf8c683bb1d4f146a061731f0518115f138b4569ac8c1c306b6b76dcae7  sing-box-runsv-1.15.0-alpha.10-nomount-armeabi-v7a.zip
-2d3ba2a3ef06d823b5cb0bf7a62f5e06c0fe114272c722945e631da2c5c2f862  sing-box-runsv-1.15.0-alpha.10-nomount-x86_64.zip
-1badc83553a28f5b9f98e23661b4a1a2b6533dc4be31cde770adb4491cc68de1  sing-box-runsv-1.15.0-alpha.10-nomount-x86.zip
-452387bbe5095d87c1436278623c79341d86197acc6a2df40c66c55c96f1e327  sing-box-runsv-1.15.0-alpha.10-mount-arm64-v8a.zip
-dd98e2799d7c43d6dea8e1691219897bad100c705f0f8b46c6bbfe84a23317aa  sing-box-runsv-1.15.0-alpha.10-mount-armeabi-v7a.zip
-aadc4eecfc99d955baf3e3e54316f2990d5fb7b79fd401ce1fa3fa41fc495d52  sing-box-runsv-1.15.0-alpha.10-mount-x86_64.zip
-370097f917caac35fd76ceaf1150bcc9152661de1460612491f61dfc7359f3ac  sing-box-runsv-1.15.0-alpha.10-mount-x86.zip
+9d172f033fa15881b533b9caba6878e8b06a6da52c288a5205d96e04e3840f14  sing-box-runsv-1.15.0-alpha.11-nomount-arm64-v8a.zip
+8e4e1ddcbf897859340b30962ce68248e0ac51a4a0befca1c1de4d65121c2560  sing-box-runsv-1.15.0-alpha.11-nomount-armeabi-v7a.zip
+6d00f8bbb0e34d95dd6655a63b50ea1d91bfa88f1e5503d48ec19412693228fb  sing-box-runsv-1.15.0-alpha.11-nomount-x86_64.zip
+4203819f154e0249e3528d48bfc1876e586c0afa95528749836f963ffc855907  sing-box-runsv-1.15.0-alpha.11-nomount-x86.zip
+daf0fc8d36db4ebe6fd828498188157f7d9f6ace3c81bc6c7277d58f43653ac2  sing-box-runsv-1.15.0-alpha.11-mount-arm64-v8a.zip
+982a2a27593c47424727cf6aa9b95cedc335d16f3201c914c484577373984607  sing-box-runsv-1.15.0-alpha.11-mount-armeabi-v7a.zip
+5efa6d580957934ef630e89ec5495e937283474d05fd3774753841e2f9bc04b9  sing-box-runsv-1.15.0-alpha.11-mount-x86_64.zip
+a0ece3167aadb2ca187fa70b6c9c188d744a3d98e07381d66420524a24cfea8c  sing-box-runsv-1.15.0-alpha.11-mount-x86.zip
 ```
